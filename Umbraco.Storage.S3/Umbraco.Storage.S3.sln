@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.Storage.S3", "Umbraco.Storage.S3\Umbraco.Storage.S3.csproj", "{20952015-A7DB-483F-B0E1-8440B5053849}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.Storage.S3.Tests", "Umbraco.Storage.S3.Tests\Umbraco.Storage.S3.Tests.csproj", "{255952BD-9195-4A58-980D-9E4052FE1367}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{20952015-A7DB-483F-B0E1-8440B5053849}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{20952015-A7DB-483F-B0E1-8440B5053849}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{20952015-A7DB-483F-B0E1-8440B5053849}.Release|Any CPU.Build.0 = Release|Any CPU
+		{255952BD-9195-4A58-980D-9E4052FE1367}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{255952BD-9195-4A58-980D-9E4052FE1367}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{255952BD-9195-4A58-980D-9E4052FE1367}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{255952BD-9195-4A58-980D-9E4052FE1367}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
