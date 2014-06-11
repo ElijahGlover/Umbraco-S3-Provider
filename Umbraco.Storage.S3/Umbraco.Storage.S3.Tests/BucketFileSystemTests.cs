@@ -16,7 +16,7 @@ namespace Umbraco.Storage.S3.Tests
         {
             var logHelperMock = new Mock<ILogHelper>();
             var mimeTypeHelper = new Mock<IMimeTypeResolver>();
-            return new BucketFileSystem("test", "test.amazonaws.com", string.Empty) {
+            return new BucketFileSystem("test", "test.amazonaws.com", string.Empty, string.Empty) {
                 ClientFactory = () => mock.Object,
                 LogHelper = logHelperMock.Object,
                 MimeTypeResolver = mimeTypeHelper.Object

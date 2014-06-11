@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Amazon;
 using Amazon.S3;
 using Umbraco.Core.IO;
 using Amazon.S3.Model;
@@ -17,7 +18,7 @@ namespace Umbraco.Storage.S3
         protected const string Delimiter = "/";
         protected const int BatchSize = 1000;
 
-        public BucketFileSystem(string bucketName, string bucketHostName, string bucketKeyPrefix)
+        public BucketFileSystem(string bucketName, string bucketHostName, string bucketKeyPrefix, string region)
         {
             if (string.IsNullOrEmpty(bucketName))
                 throw new ArgumentNullException("bucketName");
@@ -27,7 +28,8 @@ namespace Umbraco.Storage.S3
             BucketName = bucketName;
             BucketHostName = BucketExtensions.ParseBucketHostName(bucketHostName);
             BucketPrefix = BucketExtensions.ParseBucketPrefix(bucketKeyPrefix);
-            ClientFactory = () => new WrappedAmazonS3Client(new AmazonS3Client());
+            var regionEndpoint = RegionEndpoint.GetBySystemName(region);
+            ClientFactory = () => new WrappedAmazonS3Client(new AmazonS3Client(regionEndpoint));
             LogHelper = new WrappedLogHelper();
             MimeTypeResolver = new DefaultMimeTypeResolver();
         }
