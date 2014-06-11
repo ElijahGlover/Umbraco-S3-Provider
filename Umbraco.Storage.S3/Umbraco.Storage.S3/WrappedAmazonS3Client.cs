@@ -1,9 +1,10 @@
-﻿using Amazon.S3;
+﻿using System;
+using Amazon.S3;
 using Amazon.S3.Model;
 
 namespace Umbraco.Storage.S3
 {
-    public class WrappedAmazonS3Client : IAmazonS3Client
+    public class WrappedAmazonS3Client : IDisposable
     {
         private readonly AmazonS3Client _client;
 
@@ -12,37 +13,42 @@ namespace Umbraco.Storage.S3
             _client = client;
         }
 
-        public void Dispose()
+        public WrappedAmazonS3Client()
+        {
+
+        }
+
+        public virtual void Dispose()
         {
             _client.Dispose();
         }
 
-        public ListObjectsResponse ListObjects(ListObjectsRequest request)
+        public virtual ListObjectsResponse ListObjects(ListObjectsRequest request)
         {
             return _client.ListObjects(request);
         }
 
-        public PutObjectResponse PutObject(PutObjectRequest request)
+        public virtual PutObjectResponse PutObject(PutObjectRequest request)
         {
             return _client.PutObject(request);
         }
 
-        public GetObjectResponse GetObject(GetObjectRequest request)
+        public virtual GetObjectResponse GetObject(GetObjectRequest request)
         {
             return _client.GetObject(request);
         }
 
-        public DeleteObjectResponse DeleteObject(DeleteObjectRequest request)
+        public virtual DeleteObjectResponse DeleteObject(DeleteObjectRequest request)
         {
             return _client.DeleteObject(request);
         }
 
-        public GetObjectMetadataResponse GetObjectMetadata(GetObjectMetadataRequest request)
+        public virtual GetObjectMetadataResponse GetObjectMetadata(GetObjectMetadataRequest request)
         {
             return _client.GetObjectMetadata(request);
         }
 
-        public DeleteObjectsResponse DeleteObjects(DeleteObjectsRequest request)
+        public virtual DeleteObjectsResponse DeleteObjects(DeleteObjectsRequest request)
         {
             return _client.DeleteObjects(request);
         }

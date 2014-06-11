@@ -32,13 +32,13 @@ namespace Umbraco.Storage.S3
             MimeTypeResolver = new DefaultMimeTypeResolver();
         }
 
-        public Func<IAmazonS3Client> ClientFactory { get; set; }
+        public Func<WrappedAmazonS3Client> ClientFactory { get; set; }
 
         public ILogHelper LogHelper { get; set; }
 
         public IMimeTypeResolver MimeTypeResolver { get; set; }
 
-        protected T Execute<T>(Func<IAmazonS3Client, T> request)
+        protected T Execute<T>(Func<WrappedAmazonS3Client, T> request)
         {
             using (var client = ClientFactory())
             {
@@ -58,8 +58,9 @@ namespace Umbraco.Storage.S3
             var response = Execute(client => client.ListObjects(request));
             yield return response;
 
-            while (response.IsTruncated) {
-                request.WithMarker(response.NextMarker);
+            while (response.IsTruncated)
+            {
+                request.Marker = response.NextMarker;
                 response = Execute(client => client.ListObjects(request));
                 yield return response;
             }
@@ -79,10 +80,12 @@ namespace Umbraco.Storage.S3
 
         public IEnumerable<string> GetDirectories(string path)
         {
-            var request = new ListObjectsRequest()
-                .WithBucketName(BucketName)
-                .WithDelimiter(Delimiter)
-                .WithPrefix(ResolveBucketPath(path));
+            var request = new ListObjectsRequest
+            {
+                BucketName = BucketName,
+                Delimiter = Delimiter,
+                Prefix = ResolveBucketPath(path)
+            };
 
             var response = ExecuteWithContinuation(request);
             return response
@@ -100,31 +103,38 @@ namespace Umbraco.Storage.S3
         {
             //TODO recursive (use WithDelimiter)
             //List Objects To Delete
-            var listRequest = new ListObjectsRequest()
-               .WithBucketName(BucketName)
-               .WithPrefix(ResolveBucketPath(path));
+            var listRequest = new ListObjectsRequest
+            {
+                BucketName = BucketName,
+                Prefix = ResolveBucketPath(path)
+            };
+
             var listResponse = ExecuteWithContinuation(listRequest);
             var keys = listResponse
                 .SelectMany(p => p.S3Objects)
-                .Select(p => new KeyVersion(p.Key))
+                .Select(p => new KeyVersion { Key = p.Key })
                 .ToArray();
 
             //Batch Deletion Requests
             foreach (var items in keys.Batch(BatchSize))
             {
-                var deleteRequest = new DeleteObjectsRequest()
-                    .WithBucketName(BucketName)
-                    .WithKeys(items.ToArray());
+                var deleteRequest = new DeleteObjectsRequest
+                {
+                    BucketName = BucketName,
+                    Objects = items.ToList()
+                };
                 Execute(client => client.DeleteObjects(deleteRequest));
             }
         }
 
         public bool DirectoryExists(string path)
         {
-            var request = new ListObjectsRequest()
-                .WithBucketName(BucketName)
-                .WithPrefix(ResolveBucketPath(path))
-                .WithMaxKeys(1);
+            var request = new ListObjectsRequest
+            {
+                BucketName = BucketName,
+                Prefix = ResolveBucketPath(path),
+                MaxKeys = 1
+            };
 
             var response = Execute(client => client.ListObjects(request));
             return response.S3Objects.Count > 0;
@@ -137,12 +147,14 @@ namespace Umbraco.Storage.S3
 
         public void AddFile(string path, Stream stream, bool overrideIfExists)
         {
-            var request = new PutObjectRequest()
-                .WithBucketName(BucketName)
-                .WithKey(ResolveBucketPath(path))
-                .WithCannedACL(S3CannedACL.PublicRead)
-                .WithContentType(MimeTypeResolver.Resolve(path));
-            request.InputStream = stream;
+            var request = new PutObjectRequest
+            {
+                BucketName = BucketName,
+                Key = ResolveBucketPath(path),
+                CannedACL = S3CannedACL.PublicRead,
+                ContentType = MimeTypeResolver.Resolve(path),
+                InputStream = stream
+            };
 
             var response = Execute(client => client.PutObject(request));
             LogHelper.Info<BucketFileSystem>(string.Format("Object {0} Created, Id:{1}, Hash:{2}", path, response.VersionId, response.ETag));
@@ -156,19 +168,24 @@ namespace Umbraco.Storage.S3
         public IEnumerable<string> GetFiles(string path, string filter)
         {
             //TODO Add Filter To ListObjectRequest
-            var request = new ListObjectsRequest()
-                .WithBucketName(BucketName)
-                .WithDelimiter(Delimiter)
-                .WithPrefix(ResolveBucketPath(path));
+            var request = new ListObjectsRequest
+            {
+                BucketName = BucketName,
+                Delimiter = Delimiter,
+                Prefix = ResolveBucketPath(path)
+            };
+
             var response = ExecuteWithContinuation(request);
             return response.SelectMany(p => p.S3Objects).Select(p => p.Key);
         }
 
         public Stream OpenFile(string path)
         {
-            var request = new GetObjectRequest()
-                .WithBucketName(BucketName)
-                .WithKey(ResolveBucketPath(path));
+            var request = new GetObjectRequest
+            {
+                BucketName = BucketName,
+                Key = ResolveBucketPath(path)
+            };
 
             var response = Execute(client => client.GetObject(request));
 
@@ -180,17 +197,21 @@ namespace Umbraco.Storage.S3
 
         public void DeleteFile(string path)
         {
-            var request = new DeleteObjectRequest()
-                .WithBucketName(BucketName)
-                .WithKey(ResolveBucketPath(path));
+            var request = new DeleteObjectRequest
+            {
+                BucketName = BucketName,
+                Key = ResolveBucketPath(path)
+            };
             Execute(client => client.DeleteObject(request));
         }
 
         public bool FileExists(string path)
         {
             var request = new GetObjectMetadataRequest()
-                .WithBucketName(BucketName)
-                .WithKey(ResolveBucketPath(path));
+            {
+                BucketName = BucketName,
+                Key = ResolveBucketPath(path)
+            };
 
             try {
                 Execute(client => client.GetObjectMetadata(request));
@@ -222,9 +243,11 @@ namespace Umbraco.Storage.S3
 
         public DateTimeOffset GetLastModified(string path)
         {
-            var request = new GetObjectMetadataRequest()
-              .WithBucketName(BucketName)
-              .WithKey(ResolveBucketPath(path));
+            var request = new GetObjectMetadataRequest
+            {
+                BucketName = BucketName,
+                Key = ResolveBucketPath(path)
+            };
 
             var response = Execute(client => client.GetObjectMetadata(request));
             return new DateTimeOffset(response.LastModified);

@@ -41,8 +41,9 @@
     <Reference Include="AutoMapper.Net4">
       <HintPath>..\packages\AutoMapper.3.0.0\lib\net40\AutoMapper.Net4.dll</HintPath>
     </Reference>
-    <Reference Include="AWSSDK">
-      <HintPath>..\packages\AWSSDK.1.5.19.0\lib\AWSSDK.dll</HintPath>
+    <Reference Include="AWSSDK, Version=2.1.2.0, Culture=neutral, PublicKeyToken=9f476d3089b52be3, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\AWSSDK.2.1.2.0\lib\net45\AWSSDK.dll</HintPath>
     </Reference>
     <Reference Include="businesslogic">
       <HintPath>..\packages\UmbracoCms.Core.7.1.4\lib\businesslogic.dll</HintPath>
@@ -189,7 +190,6 @@
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="Exception\DeletionMarkerException.cs" />
     <Compile Include="Exception\ObjectNotFoundException.cs" />
-    <Compile Include="IAmazonS3Client.cs" />
     <Compile Include="ILogHelper.cs" />
     <Compile Include="IMimeTypeResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
