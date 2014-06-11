@@ -72,11 +72,16 @@ namespace Umbraco.Storage.S3
         {
             if (string.IsNullOrEmpty(path))
                 return BucketPrefix;
+            if (path.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
+                path = path.Substring(BucketHostName.Length);
+
             path = path.Replace("\\", "/");
             if (path == "/")
                 return BucketPrefix;
+
             if (path.StartsWith("/"))
                 path = path.Substring(1);
+
             return string.Concat(BucketPrefix, path);
         }
 
@@ -149,17 +154,22 @@ namespace Umbraco.Storage.S3
 
         public void AddFile(string path, Stream stream, bool overrideIfExists)
         {
-            var request = new PutObjectRequest
+            using (var memoryStream = new MemoryStream())
             {
-                BucketName = BucketName,
-                Key = ResolveBucketPath(path),
-                CannedACL = S3CannedACL.PublicRead,
-                ContentType = MimeTypeResolver.Resolve(path),
-                InputStream = stream
-            };
+                stream.CopyTo(memoryStream);
 
-            var response = Execute(client => client.PutObject(request));
-            LogHelper.Info<BucketFileSystem>(string.Format("Object {0} Created, Id:{1}, Hash:{2}", path, response.VersionId, response.ETag));
+                var request = new PutObjectRequest
+                {
+                    BucketName = BucketName,
+                    Key = ResolveBucketPath(path),
+                    CannedACL = S3CannedACL.PublicRead,
+                    ContentType = MimeTypeResolver.Resolve(path),
+                    InputStream = memoryStream
+                };
+
+                var response = Execute(client => client.PutObject(request));
+                LogHelper.Info<BucketFileSystem>(string.Format("Object {0} Created, Id:{1}, Hash:{2}", path, response.VersionId, response.ETag));
+            }
         }
 
         public IEnumerable<string> GetFiles(string path)
@@ -227,9 +237,9 @@ namespace Umbraco.Storage.S3
         {
             if (string.IsNullOrEmpty(fullPathOrUrl))
                 return string.Empty;
-            var url = string.Concat(BucketHostName, BucketPrefix);
-            return fullPathOrUrl.StartsWith(url)
-                ? fullPathOrUrl.Substring(url.Length)
+
+            return fullPathOrUrl.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase)
+                ? fullPathOrUrl.Substring(BucketHostName.Length)
                 : fullPathOrUrl;
         }
 
