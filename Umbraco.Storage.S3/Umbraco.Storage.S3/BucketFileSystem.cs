@@ -22,12 +22,11 @@ namespace Umbraco.Storage.S3
         {
             if (string.IsNullOrEmpty(bucketName))
                 throw new ArgumentNullException("bucketName");
-            if (string.IsNullOrEmpty(bucketHostName))
-                throw new ArgumentNullException("bucketHostName");
 
             BucketName = bucketName;
             BucketHostName = BucketExtensions.ParseBucketHostName(bucketHostName);
             BucketPrefix = BucketExtensions.ParseBucketPrefix(bucketKeyPrefix);
+
             var regionEndpoint = RegionEndpoint.GetBySystemName(region);
             ClientFactory = () => new WrappedAmazonS3Client(new AmazonS3Client(regionEndpoint));
             LogHelper = new WrappedLogHelper();
@@ -85,6 +84,13 @@ namespace Umbraco.Storage.S3
             return string.Concat(BucketPrefix, path);
         }
 
+        protected string RemovePrefix(string key)
+        {
+            if (!string.IsNullOrEmpty(BucketPrefix) && key.StartsWith(key))
+                return key.Substring(BucketPrefix.Length);
+            return key;
+        }
+
         public IEnumerable<string> GetDirectories(string path)
         {
             var request = new ListObjectsRequest
@@ -97,7 +103,7 @@ namespace Umbraco.Storage.S3
             var response = ExecuteWithContinuation(request);
             return response
                 .SelectMany(p => p.CommonPrefixes)
-                .Select(p => string.Concat(p, Delimiter))
+                .Select(p => RemovePrefix(string.Concat(p, Delimiter)))
                 .ToArray();
         }
 
@@ -188,7 +194,7 @@ namespace Umbraco.Storage.S3
             };
 
             var response = ExecuteWithContinuation(request);
-            return response.SelectMany(p => p.S3Objects).Select(p => p.Key);
+            return response.SelectMany(p => p.S3Objects).Select(p => RemovePrefix(p.Key));
         }
 
         public Stream OpenFile(string path)
@@ -204,6 +210,7 @@ namespace Umbraco.Storage.S3
             //Read Response In Memory To Seek
             var stream = new MemoryStream();
             response.ResponseStream.CopyTo(stream);
+            stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
 
@@ -219,7 +226,7 @@ namespace Umbraco.Storage.S3
 
         public bool FileExists(string path)
         {
-            var request = new GetObjectMetadataRequest()
+            var request = new GetObjectMetadataRequest
             {
                 BucketName = BucketName,
                 Key = ResolveBucketPath(path)

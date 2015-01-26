@@ -4,6 +4,9 @@
     {
         public static string ParseBucketHostName(string hostname)
         {
+            if (string.IsNullOrEmpty(hostname))
+                return "/";
+
             return hostname.EndsWith("/")
                 ? hostname
                 : string.Concat(hostname, "/");
