@@ -373,5 +373,18 @@ namespace Umbraco.Storage.S3.Tests
             //Assert
             Assert.AreEqual("1001/media.jpg", actual);
         }
+
+        [Test]
+        public void ResolveRelativePathPrefix()
+        {
+            //Arrange
+            var provider = CreateProvider(null);
+
+            //Act
+            var actual = provider.GetRelativePath("http://test.amazonaws.com/media/1001/media.jpg");
+
+            //Assert
+            Assert.AreEqual("1001/media.jpg", actual);
+        }
     }
 }

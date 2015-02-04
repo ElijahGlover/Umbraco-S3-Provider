@@ -72,14 +72,15 @@ namespace Umbraco.Storage.S3
         {
             if (string.IsNullOrEmpty(path))
                 return BucketPrefix;
+
             if (path.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(BucketHostName.Length);
 
-            path = path.Replace("\\", "/");
-            if (path == "/")
+            path = path.Replace("\\", Delimiter);
+            if (path == Delimiter)
                 return BucketPrefix;
 
-            if (path.StartsWith("/"))
+            if (path.StartsWith(Delimiter))
                 path = path.Substring(1);
 
             return string.Concat(BucketPrefix, path);
@@ -248,9 +249,18 @@ namespace Umbraco.Storage.S3
             if (string.IsNullOrEmpty(fullPathOrUrl))
                 return string.Empty;
 
-            return fullPathOrUrl.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase)
-                ? fullPathOrUrl.Substring(BucketHostName.Length)
-                : fullPathOrUrl;
+            if (fullPathOrUrl.StartsWith(Delimiter))
+                fullPathOrUrl = fullPathOrUrl.Substring(1);
+
+            //Strip Hostname
+            if (fullPathOrUrl.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
+                fullPathOrUrl = fullPathOrUrl.Substring(BucketHostName.Length);
+
+            //Strip Bucket Prefix
+            if (fullPathOrUrl.StartsWith(BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
+                return fullPathOrUrl.Substring(BucketPrefix.Length);
+             
+            return fullPathOrUrl;
         }
 
         public string GetFullPath(string path)
