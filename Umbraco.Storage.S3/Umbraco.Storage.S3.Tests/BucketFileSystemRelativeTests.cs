@@ -1,9 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
+﻿using Moq;
+using NUnit.Framework;
 
 namespace Umbraco.Storage.S3.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class BucketFileSystemRelativeTests
     {
         private BucketFileSystem CreateProvider(Mock<WrappedAmazonS3Client> mock)
@@ -17,7 +17,7 @@ namespace Umbraco.Storage.S3.Tests
             };
         }
 
-        [TestMethod]
+        [Test]
         public void ResolveFullPath()
         {
             //Arrange
@@ -30,7 +30,7 @@ namespace Umbraco.Storage.S3.Tests
             Assert.AreEqual("1001/media.jpg", actual);
         }
 
-        [TestMethod]
+        [Test]
         public void ResolveUrlPath()
         {
             //Arrange
@@ -43,7 +43,7 @@ namespace Umbraco.Storage.S3.Tests
             Assert.AreEqual("/media/1001/media.jpg", actual);
         }
 
-        [TestMethod]
+        [Test]
         public void ResolveRelativePath()
         {
             //Arrange

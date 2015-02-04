@@ -1,13 +1,11 @@
-﻿using System;
-using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 
 namespace Umbraco.Storage.S3.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class BucketExtensionsTests
     {
-        [TestMethod]
+        [Test]
         public void BucketHostnameTrailingSlash()
         {
             //Arrange
@@ -18,7 +16,7 @@ namespace Umbraco.Storage.S3.Tests
             Assert.AreEqual("http://umbraco6test.s3-website-ap-southeast-2.amazonaws.com/", actual);
         }
 
-        [TestMethod]
+        [Test]
         public void NullBucketPrefix()
         {
             //Act
@@ -27,7 +25,7 @@ namespace Umbraco.Storage.S3.Tests
             Assert.AreEqual(string.Empty, actual);
         }
 
-        [TestMethod]
+        [Test]
         public void BucketPrefix()
         {
             //Act

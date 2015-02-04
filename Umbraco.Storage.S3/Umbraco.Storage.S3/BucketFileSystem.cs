@@ -6,7 +6,6 @@ using Amazon;
 using Amazon.S3;
 using Umbraco.Core.IO;
 using Amazon.S3.Model;
-using Umbraco.Storage.S3.Exception;
 
 namespace Umbraco.Storage.S3
 {
@@ -47,7 +46,9 @@ namespace Umbraco.Storage.S3
                     return request(client);
                 } catch (AmazonS3Exception ex) {
                     if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-                        throw new ObjectNotFoundException(ex.Message);
+                        throw new FileNotFoundException(ex.Message, ex);
+                    if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        throw new UnauthorizedAccessException(ex.Message, ex);
                     LogHelper.Error<BucketFileSystem>(string.Format("S3 Bucket Error {0} {1}", ex.ErrorCode, ex.Message), ex);
                     throw;
                 }
@@ -114,7 +115,6 @@ namespace Umbraco.Storage.S3
 
         public void DeleteDirectory(string path, bool recursive)
         {
-            //TODO recursive (use WithDelimiter)
             //List Objects To Delete
             var listRequest = new ListObjectsRequest
             {
@@ -232,10 +232,13 @@ namespace Umbraco.Storage.S3
                 Key = ResolveBucketPath(path)
             };
 
-            try {
+            try
+            {
                 Execute(client => client.GetObjectMetadata(request));
                 return true;
-            } catch (ObjectNotFoundException) {
+            }
+            catch (FileNotFoundException)
+            {
                 return false;
             }
         }
@@ -268,8 +271,15 @@ namespace Umbraco.Storage.S3
                 Key = ResolveBucketPath(path)
             };
 
-            var response = Execute(client => client.GetObjectMetadata(request));
-            return new DateTimeOffset(response.LastModified);
+            try
+            {
+                var response = Execute(client => client.GetObjectMetadata(request));
+                return new DateTimeOffset(response.LastModified);
+            }
+            catch (FileNotFoundException)
+            {
+                return new DateTimeOffset(DateTime.MinValue);
+            }
         }
 
         public DateTimeOffset GetCreated(string path)

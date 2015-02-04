@@ -1,15 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
+using Amazon.Runtime;
+using Amazon.S3;
 using Amazon.S3.Model;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Umbraco.Storage.S3.Exception;
+using NUnit.Framework;
 
 namespace Umbraco.Storage.S3.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class BucketFileSystemAbsoluteTests
     {
         private BucketFileSystem CreateProvider(Mock<WrappedAmazonS3Client> mock)
@@ -23,7 +25,7 @@ namespace Umbraco.Storage.S3.Tests
             };
         }
 
-        [TestMethod]
+        [Test]
         public void GetDirectories()
         {
             //Arrange
@@ -45,7 +47,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void GetDirectoriesWithContinuationMarker()
         {
             //Arrange
@@ -72,7 +74,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void AddFile()
         {
             //Arrange
@@ -90,7 +92,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void OpenFile()
         {
             //Arrange
@@ -113,7 +115,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void DeleteFile()
         {
             //Arrange
@@ -130,7 +132,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void DeleteDirectory()
         {
             //Arrange
@@ -155,7 +157,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void DeleteDirectoryWithContinuationMarker()
         {
             //Arrange
@@ -195,7 +197,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void DirectoryExists()
         {
             //Arrange
@@ -219,7 +221,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void DirectoryExistsNoObjects()
         {
             //Arrange
@@ -239,7 +241,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void GetFiles()
         {
             //Arrange
@@ -265,7 +267,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void GetFilesWithContinuationMarker()
         {
             //Arrange
@@ -297,7 +299,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void FileExists()
         {
             //Arrange
@@ -315,13 +317,13 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void FileExistsThrowsNotFound()
         {
             //Arrange
             var clientMock = new Mock<WrappedAmazonS3Client>();
             clientMock.Setup(p => p.GetObjectMetadata(It.Is<GetObjectMetadataRequest>(req => req.Key == "media/1001/media.jpg")))
-                      .Throws(new ObjectNotFoundException("media/1001/media.jpg"));
+                      .Throws(new AmazonS3Exception("media/1001/media.jpg", ErrorType.Sender, "404 Not Found", "", HttpStatusCode.NotFound));
 
             var provider = CreateProvider(clientMock);
 
@@ -333,7 +335,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.VerifyAll();
         }
 
-        [TestMethod]
+        [Test]
         public void ResolveFullPath()
         {
             //Arrange
@@ -346,7 +348,7 @@ namespace Umbraco.Storage.S3.Tests
             Assert.AreEqual("1001/media.jpg", actual);
         }
 
-        [TestMethod]
+        [Test]
         public void ResolveUrlPath()
         {
             //Arrange
@@ -359,7 +361,7 @@ namespace Umbraco.Storage.S3.Tests
             Assert.AreEqual("http://test.amazonaws.com/media/1001/media.jpg", actual);
         }
 
-        [TestMethod]
+        [Test]
         public void ResolveRelativePath()
         {
             //Arrange
