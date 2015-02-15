@@ -93,6 +93,24 @@ namespace Umbraco.Storage.S3.Tests
         }
 
         [Test]
+        public void AddFileWithBucketPrefix()
+        {
+            //Arrange
+            var steam = new MemoryStream();
+            var clientMock = new Mock<WrappedAmazonS3Client>();
+            clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
+                      .Returns(new PutObjectResponse());
+
+            var provider = CreateProvider(clientMock);
+
+            //Act
+            provider.AddFile("/media/1001/media.jpg", steam);
+
+            //Assert
+            clientMock.VerifyAll();
+        }
+
+        [Test]
         public void OpenFile()
         {
             //Arrange
@@ -116,6 +134,30 @@ namespace Umbraco.Storage.S3.Tests
         }
 
         [Test]
+        public void OpenFileWithBucketPrefix()
+        {
+            //Arrange
+            var stream = new MemoryStream(Encoding.UTF8.GetBytes("Test123"));
+            var response = new GetObjectResponse
+            {
+                ResponseStream = stream
+            };
+
+            var clientMock = new Mock<WrappedAmazonS3Client>();
+            clientMock.Setup(p => p.GetObject(It.Is<GetObjectRequest>(req => req.Key == "media/1001/media.jpg")))
+                      .Returns(response);
+
+            var provider = CreateProvider(clientMock);
+
+            //Act
+            var actual = provider.OpenFile("/media/1001/media.jpg");
+
+            //Assert
+            Assert.AreEqual(new StreamReader(actual).ReadToEnd(), "Test123");
+            clientMock.VerifyAll();
+        }
+
+        [Test]
         public void DeleteFile()
         {
             //Arrange
@@ -127,6 +169,23 @@ namespace Umbraco.Storage.S3.Tests
 
             //Act
             provider.DeleteFile("/1010/media.jpg");
+
+            //Assert
+            clientMock.VerifyAll();
+        }
+
+        [Test]
+        public void DeleteFileWithBucketPrefix()
+        {
+            //Arrange
+            var clientMock = new Mock<WrappedAmazonS3Client>();
+            clientMock.Setup(p => p.DeleteObject(It.Is<DeleteObjectRequest>(req => req.Key == "media/1010/media.jpg")))
+                      .Returns(new DeleteObjectResponse { DeleteMarker = "Marker1" });
+
+            var provider = CreateProvider(clientMock);
+
+            //Act
+            provider.DeleteFile("/media/1010/media.jpg");
 
             //Assert
             clientMock.VerifyAll();

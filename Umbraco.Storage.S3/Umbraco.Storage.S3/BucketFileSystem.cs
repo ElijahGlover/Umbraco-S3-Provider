@@ -73,6 +73,7 @@ namespace Umbraco.Storage.S3
             if (string.IsNullOrEmpty(path))
                 return BucketPrefix;
 
+            //Remove Bucket Hostname
             if (path.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(BucketHostName.Length);
 
@@ -82,6 +83,10 @@ namespace Umbraco.Storage.S3
 
             if (path.StartsWith(Delimiter))
                 path = path.Substring(1);
+
+            //Remove Key Prefix If Duplicate
+            if (path.StartsWith(BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
+                path = path.Substring(BucketPrefix.Length);
 
             return string.Concat(BucketPrefix, path);
         }
