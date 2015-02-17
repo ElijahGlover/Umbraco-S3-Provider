@@ -78,7 +78,7 @@ namespace Umbraco.Storage.S3.Tests
         public void AddFile()
         {
             //Arrange
-            var steam = new MemoryStream();
+            var stream = new MemoryStream();
             var clientMock = new Mock<WrappedAmazonS3Client>();
             clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(new PutObjectResponse());
@@ -86,7 +86,7 @@ namespace Umbraco.Storage.S3.Tests
             var provider = CreateProvider(clientMock);
 
             //Act
-            provider.AddFile("/1001/media.jpg", steam);
+            provider.AddFile("/1001/media.jpg", stream);
 
             //Assert
             clientMock.VerifyAll();

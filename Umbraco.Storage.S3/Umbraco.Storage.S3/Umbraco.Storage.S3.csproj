@@ -73,6 +73,8 @@
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="Exception\DeletionMarkerException.cs" />
     <Compile Include="Exception\ObjectNotFoundException.cs" />
+    <Compile Include="FileSystemVirtualPathProvider.cs" />
+    <Compile Include="FileSystemVirtualPathProviderFile.cs" />
     <Compile Include="ILogHelper.cs" />
     <Compile Include="IMimeTypeResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

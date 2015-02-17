@@ -4,6 +4,7 @@ using Amazon.S3.Model;
 
 namespace Umbraco.Storage.S3
 {
+    //Used For Mocking Purposes
     public class WrappedAmazonS3Client : IDisposable
     {
         private readonly AmazonS3Client _client;
