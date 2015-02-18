@@ -16,31 +16,40 @@ namespace Umbraco.Storage.S3
             if (fileSystem == null)
                 throw new ArgumentNullException("fileSystem");
 
-            _pathPrefix = pathPrefix.StartsWith("~/")
+            _pathPrefix = pathPrefix.StartsWith("/")
                 ? pathPrefix
-                : string.Concat("~/", pathPrefix);
+                : string.Concat("/", pathPrefix);
             _fileSystem = fileSystem;
         }
 
         public override bool FileExists(string virtualPath)
         {
-            if (!virtualPath.StartsWith(_pathPrefix, StringComparison.InvariantCultureIgnoreCase))
+            var path = FormatVirtualPath(virtualPath);
+            if (!path.StartsWith(_pathPrefix, StringComparison.InvariantCultureIgnoreCase))
                 return base.FileExists(virtualPath);
 
-            return _fileSystem.Value.FileExists(StripPathPrefix(virtualPath));
+            return _fileSystem.Value.FileExists(path);
         }
 
         public override VirtualFile GetFile(string virtualPath)
         {
-            if (!virtualPath.StartsWith(_pathPrefix, StringComparison.InvariantCultureIgnoreCase))
+            var path = FormatVirtualPath(virtualPath);
+            if (!path.StartsWith(_pathPrefix, StringComparison.InvariantCultureIgnoreCase))
                 return base.GetFile(virtualPath);
 
-            return new FileSystemVirtualPathProviderFile(virtualPath, () => _fileSystem.Value.OpenFile(StripPathPrefix(virtualPath)));
+            return new FileSystemVirtualPathProviderFile(virtualPath, () => _fileSystem.Value.OpenFile(RemovePathPrefix(path)));
         }
 
-        private string StripPathPrefix(string virtualPath)
+        private string RemovePathPrefix(string virtualPath)
         {
             return virtualPath.Substring(_pathPrefix.Length);
+        }
+
+        private string FormatVirtualPath(string virtualPath)
+        {
+            return virtualPath.StartsWith("~")
+                ? virtualPath.Substring(1)
+                : virtualPath;
         }
 
         public string PathPrefix
