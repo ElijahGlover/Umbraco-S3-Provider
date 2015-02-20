@@ -19,6 +19,9 @@ namespace Umbraco.Storage.S3
             _pathPrefix = pathPrefix.StartsWith("/")
                 ? pathPrefix
                 : string.Concat("/", pathPrefix);
+            _pathPrefix = pathPrefix.EndsWith("/")
+                ? pathPrefix
+                : string.Concat(pathPrefix, "/");
             _fileSystem = fileSystem;
         }
 
@@ -64,7 +67,7 @@ namespace Umbraco.Storage.S3
             HostingEnvironment.RegisterVirtualPathProvider(provider);
         }
 
-        public static void ConfigureMedia(string pathPrefix = "~/media")
+        public static void ConfigureMedia(string pathPrefix = "media")
         {
             Configure<MediaFileSystem>(pathPrefix);
         }
