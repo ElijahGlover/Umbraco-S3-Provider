@@ -30,7 +30,7 @@ namespace Umbraco.Storage.S3.Tests
         {
             //Arrange
             var response = new ListObjectsResponse { IsTruncated = false };
-            response.CommonPrefixes.AddRange(new[] { "media/directory1", "media/directory2", "media/directory3" });
+            response.CommonPrefixes.AddRange(new[] { "media/1010/", "media/1011/", "media/1012/" });
 
             var clientMock = new Mock<WrappedAmazonS3Client>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/")))
@@ -42,7 +42,7 @@ namespace Umbraco.Storage.S3.Tests
             var actual = provider.GetDirectories("/");
 
             //Assert
-            var expected = new[] {"directory1/", "directory2/", "directory3/"};
+            var expected = new[] {"1010", "1011", "1012"};
             Assert.IsTrue(expected.SequenceEqual(actual));
             clientMock.VerifyAll();
         }
@@ -52,10 +52,10 @@ namespace Umbraco.Storage.S3.Tests
         {
             //Arrange
             var response1 = new ListObjectsResponse { IsTruncated = true, NextMarker = "Marker1" };
-            response1.CommonPrefixes.AddRange(new[] { "media/directory1", "media/directory2", "media/directory3" });
+            response1.CommonPrefixes.AddRange(new[] { "media/1001/", "media/1002/", "media/1003/" });
 
             var response2 = new ListObjectsResponse { IsTruncated = false };
-            response2.CommonPrefixes.AddRange(new[] { "media/directory4", "media/directory5", "media/directory6" });
+            response2.CommonPrefixes.AddRange(new[] { "media/1004/", "media/1005/", "media/1006/" });
 
             var clientMock = new Mock<WrappedAmazonS3Client>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/" && req.Delimiter == "/" && req.Marker == null)))
@@ -69,7 +69,7 @@ namespace Umbraco.Storage.S3.Tests
             var actual = provider.GetDirectories("/");
 
             //Assert
-            var expected = new[] { "directory1/", "directory2/", "directory3/", "directory4/", "directory5/", "directory6/" };
+            var expected = new[] { "1001", "1002", "1003", "1004", "1005", "1006" };
             Assert.IsTrue(expected.SequenceEqual(actual));
             clientMock.VerifyAll();
         }

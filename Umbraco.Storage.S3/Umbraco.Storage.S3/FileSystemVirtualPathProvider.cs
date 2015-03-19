@@ -19,7 +19,7 @@ namespace Umbraco.Storage.S3
             _pathPrefix = pathPrefix.StartsWith("/")
                 ? pathPrefix
                 : string.Concat("/", pathPrefix);
-            _pathPrefix = pathPrefix.EndsWith("/")
+            _pathPrefix = _pathPrefix.EndsWith("/")
                 ? pathPrefix
                 : string.Concat(pathPrefix, "/");
             _fileSystem = fileSystem;

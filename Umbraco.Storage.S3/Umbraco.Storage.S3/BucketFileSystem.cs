@@ -94,12 +94,17 @@ namespace Umbraco.Storage.S3
         protected string RemovePrefix(string key)
         {
             if (!string.IsNullOrEmpty(BucketPrefix) && key.StartsWith(key))
-                return key.Substring(BucketPrefix.Length);
+                key = key.Substring(BucketPrefix.Length);
+            if (key.EndsWith(Delimiter))
+                key = key.Substring(0, key.Length - 2);
             return key;
         }
 
         public IEnumerable<string> GetDirectories(string path)
         {
+            if (string.IsNullOrEmpty(path))
+                path = "/";
+
             var request = new ListObjectsRequest
             {
                 BucketName = BucketName,
