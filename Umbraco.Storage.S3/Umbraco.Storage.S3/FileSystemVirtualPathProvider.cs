@@ -38,7 +38,8 @@ namespace Umbraco.Storage.S3
             if (!path.StartsWith(_pathPrefix, StringComparison.InvariantCultureIgnoreCase))
                 return base.FileExists(virtualPath);
 
-            return _fileSystem.Value.FileExists(path);
+            var fileSystemPath = RemovePathPrefix(path);
+            return _fileSystem.Value.FileExists(fileSystemPath);
         }
 
         public override VirtualFile GetFile(string virtualPath)
@@ -47,7 +48,8 @@ namespace Umbraco.Storage.S3
             if (!path.StartsWith(_pathPrefix, StringComparison.InvariantCultureIgnoreCase))
                 return base.GetFile(virtualPath);
 
-            return new FileSystemVirtualPathProviderFile(virtualPath, () => _fileSystem.Value.OpenFile(RemovePathPrefix(path)));
+            var fileSystemPath = RemovePathPrefix(path);
+            return new FileSystemVirtualPathProviderFile(virtualPath, () => _fileSystem.Value.OpenFile(fileSystemPath));
         }
 
         private string RemovePathPrefix(string virtualPath)
