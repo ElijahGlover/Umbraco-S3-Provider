@@ -16,13 +16,20 @@ namespace Umbraco.Storage.S3
             if (fileSystem == null)
                 throw new ArgumentNullException("fileSystem");
 
-            _pathPrefix = pathPrefix.StartsWith("/")
+            _pathPrefix = FormatVirtualPathPrefix(pathPrefix);
+            _fileSystem = fileSystem;
+        }
+
+        private string FormatVirtualPathPrefix(string pathPrefix)
+        {
+            pathPrefix = pathPrefix.Replace("\\", "/");
+            pathPrefix = pathPrefix.StartsWith("/")
                 ? pathPrefix
                 : string.Concat("/", pathPrefix);
-            _pathPrefix = _pathPrefix.EndsWith("/")
+            pathPrefix = pathPrefix.EndsWith("/")
                 ? pathPrefix
                 : string.Concat(pathPrefix, "/");
-            _fileSystem = fileSystem;
+            return pathPrefix;
         }
 
         public override bool FileExists(string virtualPath)
@@ -60,8 +67,10 @@ namespace Umbraco.Storage.S3
             get { return _pathPrefix; }
         }
 
-        public static void Configure<TProviderTypeFilter>(string pathPrefix) where TProviderTypeFilter : FileSystemWrapper
+        public static void Configure<TProviderTypeFilter>(string pathPrefix = "media") where TProviderTypeFilter : FileSystemWrapper
         {
+            if (string.IsNullOrEmpty(pathPrefix))
+                throw new ArgumentNullException("pathPrefix");
             var fileSystem = new Lazy<IFileSystem>(() => FileSystemProviderManager.Current.GetFileSystemProvider<TProviderTypeFilter>());
             var provider = new FileSystemVirtualPathProvider(pathPrefix, fileSystem);
             HostingEnvironment.RegisterVirtualPathProvider(provider);
