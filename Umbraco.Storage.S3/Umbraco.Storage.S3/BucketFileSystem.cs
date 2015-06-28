@@ -17,7 +17,11 @@ namespace Umbraco.Storage.S3
         protected const string Delimiter = "/";
         protected const int BatchSize = 1000;
 
-        public BucketFileSystem(string bucketName, string bucketHostName, string bucketKeyPrefix, string region)
+        public BucketFileSystem(
+            string bucketName,
+            string bucketHostName,
+            string bucketKeyPrefix,
+            string region)
         {
             if (string.IsNullOrEmpty(bucketName))
                 throw new ArgumentNullException("bucketName");
@@ -27,18 +31,18 @@ namespace Umbraco.Storage.S3
             BucketPrefix = BucketExtensions.ParseBucketPrefix(bucketKeyPrefix);
 
             var regionEndpoint = RegionEndpoint.GetBySystemName(region);
-            ClientFactory = () => new WrappedAmazonS3Client(new AmazonS3Client(regionEndpoint));
-            LogHelper = new WrappedLogHelper();
+            ClientFactory = () => new AmazonS3Client(regionEndpoint);
+            LogHelper = new LogHelperWrapper();
             MimeTypeResolver = new DefaultMimeTypeResolver();
         }
 
-        public Func<WrappedAmazonS3Client> ClientFactory { get; set; }
+        public Func<IAmazonS3> ClientFactory { get; set; }
 
         public ILogHelper LogHelper { get; set; }
 
         public IMimeTypeResolver MimeTypeResolver { get; set; }
 
-        protected T Execute<T>(Func<WrappedAmazonS3Client, T> request)
+        protected virtual T Execute<T>(Func<IAmazonS3, T> request)
         {
             using (var client = ClientFactory())
             {
@@ -55,7 +59,7 @@ namespace Umbraco.Storage.S3
             }
         }
 
-        protected IEnumerable<ListObjectsResponse> ExecuteWithContinuation(ListObjectsRequest request)
+        protected virtual IEnumerable<ListObjectsResponse> ExecuteWithContinuation(ListObjectsRequest request)
         {
             var response = Execute(client => client.ListObjects(request));
             yield return response;
@@ -68,7 +72,7 @@ namespace Umbraco.Storage.S3
             }
         }
 
-        protected string ResolveBucketPath(string path)
+        protected virtual string ResolveBucketPath(string path)
         {
             if (string.IsNullOrEmpty(path))
                 return BucketPrefix;
@@ -91,7 +95,7 @@ namespace Umbraco.Storage.S3
             return string.Concat(BucketPrefix, path);
         }
 
-        protected string RemovePrefix(string key)
+        protected virtual string RemovePrefix(string key)
         {
             if (!string.IsNullOrEmpty(BucketPrefix) && key.StartsWith(key))
                 key = key.Substring(BucketPrefix.Length);
@@ -100,7 +104,7 @@ namespace Umbraco.Storage.S3
             return key;
         }
 
-        public IEnumerable<string> GetDirectories(string path)
+        public virtual IEnumerable<string> GetDirectories(string path)
         {
             if (string.IsNullOrEmpty(path))
                 path = "/";
@@ -119,12 +123,12 @@ namespace Umbraco.Storage.S3
                 .ToArray();
         }
 
-        public void DeleteDirectory(string path)
+        public virtual void DeleteDirectory(string path)
         {
             DeleteDirectory(path, false);
         }
 
-        public void DeleteDirectory(string path, bool recursive)
+        public virtual void DeleteDirectory(string path, bool recursive)
         {
             //List Objects To Delete
             var listRequest = new ListObjectsRequest
@@ -151,7 +155,7 @@ namespace Umbraco.Storage.S3
             }
         }
 
-        public bool DirectoryExists(string path)
+        public virtual bool DirectoryExists(string path)
         {
             var request = new ListObjectsRequest
             {
@@ -164,12 +168,12 @@ namespace Umbraco.Storage.S3
             return response.S3Objects.Count > 0;
         }
 
-        public void AddFile(string path, Stream stream)
+        public virtual void AddFile(string path, Stream stream)
         {
             AddFile(path, stream, true);
         }
 
-        public void AddFile(string path, Stream stream, bool overrideIfExists)
+        public virtual void AddFile(string path, Stream stream, bool overrideIfExists)
         {
             using (var memoryStream = new MemoryStream())
             {
@@ -189,12 +193,12 @@ namespace Umbraco.Storage.S3
             }
         }
 
-        public IEnumerable<string> GetFiles(string path)
+        public virtual IEnumerable<string> GetFiles(string path)
         {
             return GetFiles(path, string.Empty);
         }
 
-        public IEnumerable<string> GetFiles(string path, string filter)
+        public virtual IEnumerable<string> GetFiles(string path, string filter)
         {
             //TODO Add Filter To ListObjectRequest
             var request = new ListObjectsRequest
@@ -208,7 +212,7 @@ namespace Umbraco.Storage.S3
             return response.SelectMany(p => p.S3Objects).Select(p => RemovePrefix(p.Key));
         }
 
-        public Stream OpenFile(string path)
+        public virtual Stream OpenFile(string path)
         {
             var request = new GetObjectRequest
             {
@@ -225,7 +229,7 @@ namespace Umbraco.Storage.S3
             return stream;
         }
 
-        public void DeleteFile(string path)
+        public virtual void DeleteFile(string path)
         {
             var request = new DeleteObjectRequest
             {
@@ -235,7 +239,7 @@ namespace Umbraco.Storage.S3
             Execute(client => client.DeleteObject(request));
         }
 
-        public bool FileExists(string path)
+        public virtual bool FileExists(string path)
         {
             var request = new GetObjectMetadataRequest
             {
@@ -254,7 +258,7 @@ namespace Umbraco.Storage.S3
             }
         }
 
-        public string GetRelativePath(string fullPathOrUrl)
+        public virtual string GetRelativePath(string fullPathOrUrl)
         {
             if (string.IsNullOrEmpty(fullPathOrUrl))
                 return string.Empty;
@@ -273,17 +277,17 @@ namespace Umbraco.Storage.S3
             return fullPathOrUrl;
         }
 
-        public string GetFullPath(string path)
+        public virtual string GetFullPath(string path)
         {
             return path;
         }
 
-        public string GetUrl(string path)
+        public virtual string GetUrl(string path)
         {
             return string.Concat(BucketHostName, ResolveBucketPath(path));
         }
 
-        public DateTimeOffset GetLastModified(string path)
+        public virtual DateTimeOffset GetLastModified(string path)
         {
             var request = new GetObjectMetadataRequest
             {
@@ -302,7 +306,7 @@ namespace Umbraco.Storage.S3
             }
         }
 
-        public DateTimeOffset GetCreated(string path)
+        public virtual DateTimeOffset GetCreated(string path)
         {
             //It Is Not Possible To Get Object Created Date - Bucket Versioning Required
             //Return Last Modified Date Instead

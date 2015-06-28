@@ -3,7 +3,7 @@ using Umbraco.Core.Logging;
 
 namespace Umbraco.Storage.S3
 {
-    public class WrappedLogHelper : ILogHelper
+    public class LogHelperWrapper : ILogHelper
     {
         public void Info<T>(string generateMessageFormat, params Func<object>[] formatItems)
         {

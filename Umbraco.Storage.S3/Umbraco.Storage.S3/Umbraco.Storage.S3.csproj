@@ -40,9 +40,9 @@
     <BuildPackage>true</BuildPackage>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AWSSDK, Version=2.3.36.0, Culture=neutral, PublicKeyToken=9f476d3089b52be3, processorArchitecture=MSIL">
+    <Reference Include="AWSSDK, Version=2.3.44.0, Culture=neutral, PublicKeyToken=9f476d3089b52be3, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\AWSSDK.2.3.36.0\lib\net45\AWSSDK.dll</HintPath>
+      <HintPath>..\packages\AWSSDK.2.3.44.0\lib\net45\AWSSDK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,19 +53,21 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BucketExtensions.cs" />
+    <Compile Include="Extensions\BucketExtensions.cs" />
     <Compile Include="BucketFileSystem.cs" />
-    <Compile Include="DefaultMimeTypeResolver.cs" />
-    <Compile Include="EnumerableExtensions.cs" />
-    <Compile Include="Exception\DeletionMarkerException.cs" />
-    <Compile Include="Exception\ObjectNotFoundException.cs" />
+    <Compile Include="CachedBucketFileSystem.cs" />
+    <Compile Include="Services\ICacheProvider.cs" />
+    <Compile Include="Services\IFileSystemWrapper.cs" />
+    <Compile Include="Services\Impl\MimeTypeResolver.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="FileSystemVirtualPathProvider.cs" />
     <Compile Include="FileSystemVirtualPathProviderFile.cs" />
-    <Compile Include="ILogHelper.cs" />
-    <Compile Include="IMimeTypeResolver.cs" />
+    <Compile Include="Services\ILogHelper.cs" />
+    <Compile Include="Services\IMimeTypeResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WrappedAmazonS3Client.cs" />
-    <Compile Include="WrappedLogHelper.cs" />
+    <Compile Include="Services\Impl\FileSystemCacheProvider.cs" />
+    <Compile Include="Services\Impl\FileSystemWrapper.cs" />
+    <Compile Include="Services\Impl\LogHelperWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
