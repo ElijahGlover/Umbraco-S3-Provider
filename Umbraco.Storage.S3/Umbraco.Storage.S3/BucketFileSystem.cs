@@ -6,6 +6,9 @@ using Amazon;
 using Amazon.S3;
 using Umbraco.Core.IO;
 using Amazon.S3.Model;
+using Umbraco.Storage.S3.Extensions;
+using Umbraco.Storage.S3.Services;
+using Umbraco.Storage.S3.Services.Impl;
 
 namespace Umbraco.Storage.S3
 {

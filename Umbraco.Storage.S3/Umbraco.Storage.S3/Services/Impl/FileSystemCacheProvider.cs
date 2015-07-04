@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Umbraco.Storage.S3
+namespace Umbraco.Storage.S3.Services.Impl
 {
     public class FileSystemCacheProvider : ICacheProvider
     {
@@ -34,6 +34,12 @@ namespace Umbraco.Storage.S3
             return _fileSystemWrapper.MapPath(virtualPath);
         }
 
+        public bool Exists(string key)
+        {
+            var virtualPath = ResolveStoragePath(key);
+            return !IsExpired(_fileSystemWrapper.GetLastAccessTimeUtc(virtualPath));
+        }
+
         public void Persist(string key, Stream stream)
         {
             var basePath = _fileSystemWrapper.MapPath(_cachePath);
@@ -46,13 +52,18 @@ namespace Umbraco.Storage.S3
                 stream.Seek(0, SeekOrigin.Begin);
         }
 
+        private bool IsExpired(DateTime time)
+        {
+            return DateTime.UtcNow.Subtract(time) > _timeToLive;
+        }
+
         public Stream Resolve(string key)
         {
             var path = ResolveStoragePath(key);
 
             try
             {
-                if (DateTime.UtcNow < _fileSystemWrapper.GetLastAccessTimeUtc(path).Add(_timeToLive))
+                if (IsExpired(_fileSystemWrapper.GetLastAccessTimeUtc(path)))
                     return null;
 
                 return _fileSystemWrapper.Open(path);

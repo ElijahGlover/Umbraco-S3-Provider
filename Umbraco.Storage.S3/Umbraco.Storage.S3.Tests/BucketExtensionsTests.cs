@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using Umbraco.Storage.S3.Extensions;
 
 namespace Umbraco.Storage.S3.Tests
 {

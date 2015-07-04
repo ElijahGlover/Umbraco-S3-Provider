@@ -1,6 +1,7 @@
 ﻿using Amazon.S3;
 using Moq;
 using NUnit.Framework;
+using Umbraco.Storage.S3.Services;
 
 namespace Umbraco.Storage.S3.Tests
 {

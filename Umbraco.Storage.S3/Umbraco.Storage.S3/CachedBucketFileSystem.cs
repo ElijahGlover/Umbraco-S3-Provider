@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using Umbraco.Storage.S3.Services;
+using Umbraco.Storage.S3.Services.Impl;
 
 namespace Umbraco.Storage.S3
 {
@@ -14,8 +16,12 @@ namespace Umbraco.Storage.S3
             string timeToLive)
             : base(bucketName, bucketHostName, bucketKeyPrefix, region)
         {
-            var timeToLiveValue = int.Parse(timeToLive);
-            CacheProvider = new FileSystemCacheProvider(new TimeSpan(timeToLiveValue), cachePath);
+            int timeToLiveValue;
+            if (!int.TryParse(timeToLive, out timeToLiveValue))
+                throw new ArgumentException("timeToLive value be castable to int type", timeToLive);
+
+            var timeToLiveTimeSpan = TimeSpan.FromSeconds(timeToLiveValue);
+            CacheProvider = new FileSystemCacheProvider(timeToLiveTimeSpan, cachePath);
         }
 
         public ICacheProvider CacheProvider { get; set; }
@@ -30,6 +36,11 @@ namespace Umbraco.Storage.S3
             CacheProvider.Persist(path, stream);
 
             return stream;
+        }
+
+        public override bool FileExists(string path)
+        {
+            return CacheProvider.Exists(path) || base.FileExists(path);
         }
     }
 }

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Web.Hosting;
 
-namespace Umbraco.Storage.S3
+namespace Umbraco.Storage.S3.Services.Impl
 {
     public class FileSystemWrapper : IFileSystemWrapper
     {
@@ -21,6 +21,7 @@ namespace Umbraco.Storage.S3
         {
             using (var fileStream = File.Create(filePath))
                 stream.CopyTo(fileStream);
+            File.SetLastAccessTimeUtc(filePath, DateTime.UtcNow);
         }
 
         public DateTime GetLastAccessTimeUtc(string filePath)

@@ -69,7 +69,7 @@ namespace Umbraco.Storage.S3
             get { return _pathPrefix; }
         }
 
-        public static void Configure<TProviderTypeFilter>(string pathPrefix = "media") where TProviderTypeFilter : Core.IO.FileSystemWrapper
+        public static void Configure<TProviderTypeFilter>(string pathPrefix = "media") where TProviderTypeFilter : FileSystemWrapper
         {
             if (string.IsNullOrEmpty(pathPrefix))
                 throw new ArgumentNullException("pathPrefix");
