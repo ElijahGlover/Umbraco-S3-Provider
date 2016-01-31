@@ -303,9 +303,9 @@ namespace Umbraco.Storage.S3
                 var response = Execute(client => client.GetObjectMetadata(request));
                 return new DateTimeOffset(response.LastModified);
             }
-            catch (FileNotFoundException)
+            catch (FileNotFoundException ex)
             {
-                return new DateTimeOffset(DateTime.MinValue);
+                return DateTimeOffset.MinValue;
             }
         }
 
