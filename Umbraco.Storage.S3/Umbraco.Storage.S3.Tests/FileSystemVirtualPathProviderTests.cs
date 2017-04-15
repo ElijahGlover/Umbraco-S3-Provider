@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Umbraco.Core.IO;
@@ -67,7 +63,7 @@ namespace Umbraco.Storage.S3.Tests
             fileProvider.Setup(p => p.OpenFile("1001/media.jpg")).Returns(stream);
             var provider = new FileSystemVirtualPathProvider("media", new Lazy<IFileSystem>(() => fileProvider.Object));
 
-            var result = provider.FileExists("~/media/1001/media.jpg");
+            provider.FileExists("~/media/1001/media.jpg");
             fileProvider.Verify(p => p.FileExists("1001/media.jpg"), Times.Once);
         }
     }

@@ -1,4 +1,4 @@
-﻿namespace Umbraco.Storage.S3
+﻿namespace Umbraco.Storage.S3.Extensions
 {
     public static class BucketExtensions
     {

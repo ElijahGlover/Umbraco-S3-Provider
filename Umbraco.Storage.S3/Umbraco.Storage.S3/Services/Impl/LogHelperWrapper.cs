@@ -1,9 +1,9 @@
 ﻿using System;
 using Umbraco.Core.Logging;
 
-namespace Umbraco.Storage.S3
+namespace Umbraco.Storage.S3.Services.Impl
 {
-    public class WrappedLogHelper : ILogHelper
+    public class LogHelperWrapper : ILogHelper
     {
         public void Info<T>(string generateMessageFormat, params Func<object>[] formatItems)
         {
@@ -25,12 +25,12 @@ namespace Umbraco.Storage.S3
             LogHelper.Info<T>(generateMessage);
         }
 
-        public void Error<T>(string message, System.Exception exception)
+        public void Error<T>(string message, Exception exception)
         {
             LogHelper.Error<T>(message, exception);
         }
 
-        public void Error(Type callingType, string message, System.Exception exception)
+        public void Error(Type callingType, string message, Exception exception)
         {
             LogHelper.Error(callingType, message, exception);
         }

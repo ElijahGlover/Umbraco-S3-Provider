@@ -8,13 +8,14 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Moq;
 using NUnit.Framework;
+using Umbraco.Storage.S3.Services;
 
 namespace Umbraco.Storage.S3.Tests
 {
     [TestFixture]
     public class BucketFileSystemAbsoluteTests
     {
-        private BucketFileSystem CreateProvider(Mock<WrappedAmazonS3Client> mock)
+        private BucketFileSystem CreateProvider(Mock<IAmazonS3> mock)
         {
             var logHelperMock = new Mock<ILogHelper>();
             var mimeTypeHelper = new Mock<IMimeTypeResolver>();
@@ -32,7 +33,7 @@ namespace Umbraco.Storage.S3.Tests
             var response = new ListObjectsResponse { IsTruncated = false };
             response.CommonPrefixes.AddRange(new[] { "media/1010/", "media/1011/", "media/1012/" });
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/")))
                       .Returns(response);
 
@@ -57,7 +58,7 @@ namespace Umbraco.Storage.S3.Tests
             var response2 = new ListObjectsResponse { IsTruncated = false };
             response2.CommonPrefixes.AddRange(new[] { "media/1004/", "media/1005/", "media/1006/" });
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/" && req.Delimiter == "/" && req.Marker == null)))
                       .Returns(response1);
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/" && req.Delimiter == "/" && req.Marker == "Marker1")))
@@ -79,7 +80,7 @@ namespace Umbraco.Storage.S3.Tests
         {
             //Arrange
             var stream = new MemoryStream();
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(new PutObjectResponse());
 
@@ -97,7 +98,7 @@ namespace Umbraco.Storage.S3.Tests
         {
             //Arrange
             var steam = new MemoryStream();
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(new PutObjectResponse());
 
@@ -119,7 +120,7 @@ namespace Umbraco.Storage.S3.Tests
                 ResponseStream = stream
             };
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.GetObject(It.Is<GetObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(response);
 
@@ -143,7 +144,7 @@ namespace Umbraco.Storage.S3.Tests
                 ResponseStream = stream
             };
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.GetObject(It.Is<GetObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(response);
 
@@ -161,7 +162,7 @@ namespace Umbraco.Storage.S3.Tests
         public void DeleteFile()
         {
             //Arrange
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.DeleteObject(It.Is<DeleteObjectRequest>(req => req.Key == "media/1010/media.jpg")))
                       .Returns(new DeleteObjectResponse { DeleteMarker = "Marker1" });
 
@@ -178,7 +179,7 @@ namespace Umbraco.Storage.S3.Tests
         public void DeleteFileWithBucketPrefix()
         {
             //Arrange
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.DeleteObject(It.Is<DeleteObjectRequest>(req => req.Key == "media/1010/media.jpg")))
                       .Returns(new DeleteObjectResponse { DeleteMarker = "Marker1" });
 
@@ -201,7 +202,7 @@ namespace Umbraco.Storage.S3.Tests
                 new S3Object { Key = "media/abc/object2" }
             });
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/abc")))
                       .Returns(response);
             clientMock.Setup(p => p.DeleteObjects(It.IsAny<DeleteObjectsRequest>()))
@@ -239,7 +240,7 @@ namespace Umbraco.Storage.S3.Tests
                 new DeletedObject { DeleteMarker = true, Key = "media/object4" }
             });
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/" && req.Marker == null)))
                       .Returns(response1);
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/" && req.Marker == "Marker1")))
@@ -266,7 +267,7 @@ namespace Umbraco.Storage.S3.Tests
                 new S3Object { Key = "abc/object2" }
             });
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.MaxKeys == 1)))
                       .Returns(response);
 
@@ -286,7 +287,7 @@ namespace Umbraco.Storage.S3.Tests
             //Arrange
             var listResponse = new ListObjectsResponse { IsTruncated = false };
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.MaxKeys == 1)))
                       .Returns(listResponse);
 
@@ -311,7 +312,7 @@ namespace Umbraco.Storage.S3.Tests
                 new S3Object {Key = "media/1001/object3"}
             });
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/1001/")))
                       .Returns(response);
 
@@ -341,7 +342,7 @@ namespace Umbraco.Storage.S3.Tests
                 new S3Object { Key = "media/object4" }
             });
 
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/1001/" && req.Delimiter == "/" && req.Marker == null)))
                       .Returns(response1);
             clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/1001/" && req.Delimiter == "/" && req.Marker == "marker1")))
@@ -362,7 +363,7 @@ namespace Umbraco.Storage.S3.Tests
         public void FileExists()
         {
             //Arrange
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.GetObjectMetadata(It.Is<GetObjectMetadataRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(new GetObjectMetadataResponse());
 
@@ -380,7 +381,7 @@ namespace Umbraco.Storage.S3.Tests
         public void FileExistsThrowsNotFound()
         {
             //Arrange
-            var clientMock = new Mock<WrappedAmazonS3Client>();
+            var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.GetObjectMetadata(It.Is<GetObjectMetadataRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Throws(new AmazonS3Exception("media/1001/media.jpg", ErrorType.Sender, "404 Not Found", "", HttpStatusCode.NotFound));
 

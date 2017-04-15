@@ -1,12 +1,14 @@
-﻿using Moq;
+﻿using Amazon.S3;
+using Moq;
 using NUnit.Framework;
+using Umbraco.Storage.S3.Services;
 
 namespace Umbraco.Storage.S3.Tests
 {
     [TestFixture]
     public class BucketFileSystemRelativeTests
     {
-        private BucketFileSystem CreateProvider(Mock<WrappedAmazonS3Client> mock)
+        private BucketFileSystem CreateProvider(Mock<IAmazonS3> mock)
         {
             var logHelperMock = new Mock<ILogHelper>();
             var mimeTypeHelper = new Mock<IMimeTypeResolver>();
