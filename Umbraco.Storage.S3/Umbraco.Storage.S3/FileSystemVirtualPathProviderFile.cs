@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Web;
 using System.Web.Hosting;
 
 namespace Umbraco.Storage.S3
@@ -17,6 +18,22 @@ namespace Umbraco.Storage.S3
 
         public override Stream Open()
         {
+            if (HttpContext.Current != null)
+            {
+                var path = HttpContext
+                    .Current
+                    .Request
+                    .FilePath;
+
+                if (path.Contains("mp4"))
+                {
+                    HttpContext
+                        .Current
+                        .Response
+                        .AppendHeader("Accept-Ranges", "bytes");
+                }
+            }
+
             return _stream();
         }
 
