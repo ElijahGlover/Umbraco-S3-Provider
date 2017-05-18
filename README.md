@@ -81,6 +81,21 @@ public class Global : UmbracoApplication
   </configuration>
 ```
 
+For **Umbraco v7.5+ you must add the the StaticFileHandler** to the new Web.config inside the `Media` folder instead of the root one or the VPP will not work!
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<system.webServer>
+		<handlers>
+			<clear />
+			<add name="StaticFileHandler" path="*" verb="*" preCondition="integratedMode" type="System.Web.StaticFileHandler" />
+			<add name="StaticFile" path="*" verb="*" modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" resourceType="Either" requireAccess="Read" />
+		</handlers>
+	</system.webServer>
+</configuration>
+```
+
 ## Using ImageProcessor (Recommended for Umbraco > 7.3.5)
 Support for remote files has been added to ImageProcessor in version > `2.3.2`. You'll also want to ensure that you are using Virtual Path Provider as ImageProcessor only hijacks requests when parameters are present in the querystring (like width, height, etc)
 
