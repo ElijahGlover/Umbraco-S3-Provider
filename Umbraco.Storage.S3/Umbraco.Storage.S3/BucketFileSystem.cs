@@ -223,11 +223,12 @@ namespace Umbraco.Storage.S3
                 Key = ResolveBucketPath(path)
             };
 
-            var response = Execute(client => client.GetObject(request));
-
-            //Read Response In Memory To Seek
-            var stream = new MemoryStream();
-            response.ResponseStream.CopyTo(stream);
+            MemoryStream stream;
+            using (var response = Execute(client => client.GetObject(request)))
+            {
+                stream = new MemoryStream();
+                response.ResponseStream.CopyTo(stream);
+            }
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
@@ -276,7 +277,7 @@ namespace Umbraco.Storage.S3
             //Strip Bucket Prefix
             if (fullPathOrUrl.StartsWith(BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
                 return fullPathOrUrl.Substring(BucketPrefix.Length);
-             
+
             return fullPathOrUrl;
         }
 
