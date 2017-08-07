@@ -18,7 +18,7 @@ namespace Umbraco.Storage.S3
                 throw new ArgumentNullException("stream");
             _stream = stream;
 
-            string validExtensions = ConfigurationSettings.AppSettings["Umbraco.S3.Stream.Extensions"];
+            string validExtensions = ConfigurationSettings.AppSettings["Umbraco.S3.AllowedStreamFiles"];
             _extensionArray = validExtensions?.Split(',');
         }
 
@@ -27,7 +27,7 @@ namespace Umbraco.Storage.S3
             if (HttpContext.Current != null)
             {
                 var path = HttpContext.Current.Request.FilePath;
-                if (_extensionArray.Any(x => path.Contains(x)))
+                if (_extensionArray != null && _extensionArray.Any(x => path.Contains(x)))
                 {
                     HttpContext.Current.Response.AppendHeader("Accept-Ranges", "bytes");
                 }

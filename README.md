@@ -118,3 +118,13 @@ Replace config file located `~/config/imageprocessor/security.config`
   </services>
 </security>
 ```
+
+## Streaming for audio and video files
+In case that you need to stream audio and/or video files you will need to the following application setting to you web.config
+```xml
+<configuration>
+  <appSettings>
+      <add key="Umbraco.S3.AllowedStreamFiles" value="mp3,mp4" />
+  </appSettings>
+</configuration>
+```
