@@ -208,21 +208,28 @@ namespace Umbraco.Storage.S3
 
         public virtual IEnumerable<string> GetFiles(string path, string filter)
         {
-            //TODO Add Filter To ListObjectRequest
-
             path = ResolveBucketPath(path, true);
+
+            string filename = Path.GetFileNameWithoutExtension(filter);
+            if (filename.EndsWith("*"))
+                filename = filename.Remove(filename.Length - 1);
+
+            string ext = Path.GetExtension(filter);
+            if (ext.Contains("*"))
+                ext = string.Empty;
+
             var request = new ListObjectsRequest
             {
                 BucketName = BucketName,
                 Delimiter = Delimiter,
-                Prefix = path
+                Prefix = path + filename
             };
 
             var response = ExecuteWithContinuation(request);
             return response
                 .SelectMany(p => p.S3Objects)
                 .Select(p => RemovePrefix(p.Key, path))
-                .Where(p => !string.IsNullOrEmpty(p))
+                .Where(p => !string.IsNullOrEmpty(p) && p.EndsWith(ext))
                 .ToArray();
 
         }
