@@ -212,7 +212,11 @@ namespace Umbraco.Storage.S3
             };
 
             var response = ExecuteWithContinuation(request);
-            return response.SelectMany(p => p.S3Objects).Select(p => RemovePrefix(p.Key));
+            return response
+                .SelectMany(p => p.S3Objects)
+                .Select(p => RemovePrefix(p.Key))
+                .ToArray();
+
         }
 
         public virtual Stream OpenFile(string path)
