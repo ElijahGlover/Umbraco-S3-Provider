@@ -101,10 +101,10 @@ namespace Umbraco.Storage.S3
             return string.Concat(BucketPrefix, path);
         }
 
-        protected virtual string RemovePrefix(string key, string prefix)
+        protected virtual string RemovePrefix(string key)
         {
-            if (!string.IsNullOrEmpty(prefix) && key.StartsWith(prefix))
-                key = key.Substring(prefix.Length);
+            if (!string.IsNullOrEmpty(BucketPrefix) && key.StartsWith(BucketPrefix))
+                key = key.Substring(BucketPrefix.Length);
 
             if (key.EndsWith(Delimiter))
                 key = key.Substring(0, key.Length - Delimiter.Length);
@@ -127,7 +127,7 @@ namespace Umbraco.Storage.S3
             var response = ExecuteWithContinuation(request);
             return response
                 .SelectMany(p => p.CommonPrefixes)
-                .Select(p => RemovePrefix(p, path))
+                .Select(p => RemovePrefix(p))
                 .ToArray();
         }
 
@@ -228,7 +228,7 @@ namespace Umbraco.Storage.S3
             var response = ExecuteWithContinuation(request);
             return response
                 .SelectMany(p => p.S3Objects)
-                .Select(p => RemovePrefix(p.Key, path))
+                .Select(p => RemovePrefix(p.Key))
                 .Where(p => !string.IsNullOrEmpty(p) && p.EndsWith(ext))
                 .ToArray();
 
