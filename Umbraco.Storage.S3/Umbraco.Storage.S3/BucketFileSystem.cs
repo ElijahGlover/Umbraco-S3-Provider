@@ -75,7 +75,7 @@ namespace Umbraco.Storage.S3
             }
         }
 
-        protected virtual string ResolveBucketPath(string path)
+        protected virtual string ResolveBucketPath(string path, bool isDir = false)
         {
             if (string.IsNullOrEmpty(path))
                 return BucketPrefix;
@@ -95,15 +95,19 @@ namespace Umbraco.Storage.S3
             if (path.StartsWith(BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(BucketPrefix.Length);
 
+            if (isDir && (!path.EndsWith(Delimiter)))
+                path = string.Concat(path, Delimiter);
+
             return string.Concat(BucketPrefix, path);
         }
 
         protected virtual string RemovePrefix(string key)
         {
-            if (!string.IsNullOrEmpty(BucketPrefix) && key.StartsWith(key))
+            if (!string.IsNullOrEmpty(BucketPrefix) && key.StartsWith(BucketPrefix))
                 key = key.Substring(BucketPrefix.Length);
+
             if (key.EndsWith(Delimiter))
-                key = key.Substring(0, key.Length - 2);
+                key = key.Substring(0, key.Length - Delimiter.Length);
             return key;
         }
 
@@ -112,17 +116,18 @@ namespace Umbraco.Storage.S3
             if (string.IsNullOrEmpty(path))
                 path = "/";
 
+            path = ResolveBucketPath(path, true);
             var request = new ListObjectsRequest
             {
                 BucketName = BucketName,
                 Delimiter = Delimiter,
-                Prefix = ResolveBucketPath(path)
+                Prefix = path
             };
 
             var response = ExecuteWithContinuation(request);
             return response
                 .SelectMany(p => p.CommonPrefixes)
-                .Select(p => RemovePrefix(string.Concat(p, Delimiter)))
+                .Select(p => RemovePrefix(p))
                 .ToArray();
         }
 
@@ -198,21 +203,35 @@ namespace Umbraco.Storage.S3
 
         public virtual IEnumerable<string> GetFiles(string path)
         {
-            return GetFiles(path, string.Empty);
+            return GetFiles(path, "*.*");
         }
 
         public virtual IEnumerable<string> GetFiles(string path, string filter)
         {
-            //TODO Add Filter To ListObjectRequest
+            path = ResolveBucketPath(path, true);
+
+            string filename = Path.GetFileNameWithoutExtension(filter);
+            if (filename.EndsWith("*"))
+                filename = filename.Remove(filename.Length - 1);
+
+            string ext = Path.GetExtension(filter);
+            if (ext.Contains("*"))
+                ext = string.Empty;
+
             var request = new ListObjectsRequest
             {
                 BucketName = BucketName,
                 Delimiter = Delimiter,
-                Prefix = ResolveBucketPath(path)
+                Prefix = path + filename
             };
 
             var response = ExecuteWithContinuation(request);
-            return response.SelectMany(p => p.S3Objects).Select(p => RemovePrefix(p.Key));
+            return response
+                .SelectMany(p => p.S3Objects)
+                .Select(p => RemovePrefix(p.Key))
+                .Where(p => !string.IsNullOrEmpty(p) && p.EndsWith(ext))
+                .ToArray();
+
         }
 
         public virtual Stream OpenFile(string path)
