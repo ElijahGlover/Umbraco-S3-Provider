@@ -328,6 +328,58 @@ namespace Umbraco.Storage.S3.Tests
         }
 
         [Test]
+        public void GetFilesWithWildCardFilter()
+        {
+            //Arrange
+            var response = new ListObjectsResponse { IsTruncated = false };
+            response.S3Objects.AddRange(new[] {
+                new S3Object {Key = "media/1001/object1.txt"},
+                new S3Object {Key = "media/1001/object2.json"},
+                new S3Object {Key = "media/1001/object3.bmp"}
+            });
+
+            var clientMock = new Mock<IAmazonS3>();
+            clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/1001/")))
+                      .Returns(response);
+
+            var provider = CreateProvider(clientMock);
+
+            //Act
+            var actual = provider.GetFiles("1001/", "*.*");
+
+            //Assert
+            var expected = new[] { "1001/object1.txt", "1001/object2.json", "1001/object3.bmp" };
+            Assert.IsTrue(expected.SequenceEqual(actual));
+            clientMock.VerifyAll();
+        }
+
+        [Test]
+        public void GetFilesWithFilter()
+        {
+            //Arrange
+            var response = new ListObjectsResponse { IsTruncated = false };
+            response.S3Objects.AddRange(new[] {
+                new S3Object {Key = "media/1001/object1.txt"},
+                new S3Object {Key = "media/1001/object2.json"},
+                new S3Object {Key = "media/1001/object3.bmp"}
+            });
+
+            var clientMock = new Mock<IAmazonS3>();
+            clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/1001/")))
+                      .Returns(response);
+
+            var provider = CreateProvider(clientMock);
+
+            //Act
+            var actual = provider.GetFiles("1001/", "*.json");
+
+            //Assert
+            var expected = new[] { "1001/object2.json" };
+            Assert.IsTrue(expected.SequenceEqual(actual));
+            clientMock.VerifyAll();
+        }
+
+        [Test]
         public void GetFilesWithContinuationMarker()
         {
             //Arrange
