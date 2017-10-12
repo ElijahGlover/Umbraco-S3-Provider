@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.Storage.S3", "Umbraco.Storage.S3\Umbraco.Storage.S3.csproj", "{20952015-A7DB-483F-B0E1-8440B5053849}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbraco.Storage.S3.Tests", "Umbraco.Storage.S3.Tests\Umbraco.Storage.S3.Tests.csproj", "{255952BD-9195-4A58-980D-9E4052FE1367}"
