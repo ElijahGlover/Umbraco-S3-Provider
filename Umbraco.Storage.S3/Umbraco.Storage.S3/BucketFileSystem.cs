@@ -81,7 +81,7 @@ namespace Umbraco.Storage.S3
                 return BucketPrefix;
 
             //Remove Bucket Hostname
-            if (path.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
+            if (!path.Equals("/") && path.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(BucketHostName.Length);
 
             path = path.Replace("\\", Delimiter);
