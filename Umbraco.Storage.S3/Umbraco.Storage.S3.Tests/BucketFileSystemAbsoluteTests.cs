@@ -17,9 +17,20 @@ namespace Umbraco.Storage.S3.Tests
     {
         private BucketFileSystem CreateProvider(Mock<IAmazonS3> mock)
         {
+            return CreateProviderWithParams(mock, "test", "http://test.amazonaws.com", "media", string.Empty);
+        }
+
+        private BucketFileSystem CreateProviderWithParams(
+            Mock<IAmazonS3> mock,
+            string bucketName,
+            string bucketHostName,
+            string bucketKeyPrefix,
+            string region)
+        {
             var logHelperMock = new Mock<ILogHelper>();
             var mimeTypeHelper = new Mock<IMimeTypeResolver>();
-            return new BucketFileSystem("test", "http://test.amazonaws.com", "media", string.Empty) {
+            return new BucketFileSystem(bucketName, bucketHostName, bucketKeyPrefix, region)
+            {
                 ClientFactory = () => mock.Object,
                 LogHelper = logHelperMock.Object,
                 MimeTypeResolver = mimeTypeHelper.Object
@@ -34,7 +45,7 @@ namespace Umbraco.Storage.S3.Tests
             response.CommonPrefixes.AddRange(new[] { "media/1010/", "media/1011/", "media/1012/" });
 
             var clientMock = new Mock<IAmazonS3>();
-            clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/")))
+            clientMock.Setup(p => p.ListObjects(It.IsAny<ListObjectsRequest>()))
                       .Returns(response);
 
             var provider = CreateProvider(clientMock);
@@ -46,6 +57,30 @@ namespace Umbraco.Storage.S3.Tests
             var expected = new[] {"1010", "1011", "1012"};
             Assert.IsTrue(expected.SequenceEqual(actual));
             clientMock.VerifyAll();
+            clientMock.Verify(x => x.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/")), Times.Once);
+        }
+
+        [Test]
+        public void GetDirectoriesResolveBucketPath()
+        {
+            //Arrange
+            var response = new ListObjectsResponse { IsTruncated = false };
+            response.CommonPrefixes.AddRange(new[] { "media/1010/", "media/1011/", "media/1012/" });
+
+            var clientMock = new Mock<IAmazonS3>();
+            clientMock.Setup(p => p.ListObjects(It.IsAny<ListObjectsRequest>()))
+                      .Returns(response);
+
+            var provider = CreateProviderWithParams(clientMock, "test", null, "media", string.Empty);
+
+            //Act
+            var directories1 = provider.GetDirectories("");
+            var directories2 = provider.GetDirectories("/");
+
+            //Assert
+            Assert.IsTrue(directories1.Any());
+            Assert.IsTrue(directories2.Any());
+            clientMock.Verify(x => x.ListObjects(It.Is<ListObjectsRequest>(req => req.Delimiter == "/" && req.Prefix == "media/")), Times.Exactly(2));
         }
 
         [Test]

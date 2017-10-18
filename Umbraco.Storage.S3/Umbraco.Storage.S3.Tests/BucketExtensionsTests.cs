@@ -7,6 +7,15 @@ namespace Umbraco.Storage.S3.Tests
     public class BucketExtensionsTests
     {
         [Test]
+        public void BucketHostnameNull()
+        {
+            //Act
+            var actual = BucketExtensions.ParseBucketHostName(null);
+            //Assert
+            Assert.AreEqual("/", actual);
+        }
+
+        [Test]
         public void BucketHostnameTrailingSlash()
         {
             //Arrange
