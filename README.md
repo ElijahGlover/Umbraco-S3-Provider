@@ -69,16 +69,16 @@ public class Global : UmbracoApplication
 - Add static file handler to serve all files from the media directory
 ```xml
 <?xml version="1.0"?>
-  <configuration>
-    <location path="Media">
-      <system.webServer>
-        <handlers>
-          <remove name="StaticFileHandler" />
-          <add name="StaticFileHandler" path="*" verb="*" preCondition="integratedMode" type="System.Web.StaticFileHandler" />
-        </handlers>
-      </system.webServer>
-    </location>
-  </configuration>
+<configuration>
+  <location path="Media">
+    <system.webServer>
+      <handlers>
+        <remove name="StaticFileHandler" />
+        <add name="StaticFileHandler" path="*" verb="*" preCondition="integratedMode" type="System.Web.StaticFileHandler" />
+      </handlers>
+    </system.webServer>
+  </location>
+</configuration>
 ```
 
 For **Umbraco v7.5+ you must add the the StaticFileHandler** to the new Web.config inside the `Media` folder instead of the root one or the VPP will not work!
@@ -86,13 +86,13 @@ For **Umbraco v7.5+ you must add the the StaticFileHandler** to the new Web.conf
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-	<system.webServer>
-		<handlers>
-			<clear />
-			<add name="StaticFileHandler" path="*" verb="*" preCondition="integratedMode" type="System.Web.StaticFileHandler" />
-			<add name="StaticFile" path="*" verb="*" modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" resourceType="Either" requireAccess="Read" />
-		</handlers>
-	</system.webServer>
+  <system.webServer>
+    <handlers>
+      <clear />
+      <add name="StaticFileHandler" path="*" verb="*" preCondition="integratedMode" type="System.Web.StaticFileHandler" />
+      <add name="StaticFile" path="*" verb="*" modules="StaticFileModule,DefaultDocumentModule,DirectoryListingModule" resourceType="Either" requireAccess="Read" />
+    </handlers>
+  </system.webServer>
 </configuration>
 ```
 
