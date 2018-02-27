@@ -142,7 +142,7 @@ namespace Umbraco.Storage.S3
             var listRequest = new ListObjectsRequest
             {
                 BucketName = BucketName,
-                Prefix = ResolveBucketPath(path)
+                Prefix = ResolveBucketPath(path, true)
             };
 
             var listResponse = ExecuteWithContinuation(listRequest);
@@ -168,7 +168,7 @@ namespace Umbraco.Storage.S3
             var request = new ListObjectsRequest
             {
                 BucketName = BucketName,
-                Prefix = ResolveBucketPath(path),
+                Prefix = ResolveBucketPath(path, true),
                 MaxKeys = 1
             };
 
