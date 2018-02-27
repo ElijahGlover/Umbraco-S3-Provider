@@ -238,7 +238,7 @@ namespace Umbraco.Storage.S3.Tests
             });
 
             var clientMock = new Mock<IAmazonS3>();
-            clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/abc")))
+            clientMock.Setup(p => p.ListObjects(It.Is<ListObjectsRequest>(req => req.Prefix == "media/abc/")))
                       .Returns(response);
             clientMock.Setup(p => p.DeleteObjects(It.IsAny<DeleteObjectsRequest>()))
                       .Returns(new DeleteObjectsResponse { DeletedObjects = new List<DeletedObject>() });
