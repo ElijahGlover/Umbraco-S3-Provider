@@ -13,8 +13,9 @@ namespace Umbraco.Storage.S3
             string bucketKeyPrefix,
             string region,
             string cachePath,
-            string timeToLive)
-            : base(bucketName, bucketHostName, bucketKeyPrefix, region)
+            string timeToLive,
+            string cannedACL)
+            : base(bucketName, bucketHostName, bucketKeyPrefix, region, cannedACL)
         {
             int timeToLiveValue;
             if (!int.TryParse(timeToLive, out timeToLiveValue))
@@ -23,6 +24,15 @@ namespace Umbraco.Storage.S3
             var timeToLiveTimeSpan = TimeSpan.FromSeconds(timeToLiveValue);
             CacheProvider = new FileSystemCacheProvider(timeToLiveTimeSpan, cachePath);
         }
+
+        public CachedBucketFileSystem(
+            string bucketName,
+            string bucketHostName,
+            string bucketKeyPrefix,
+            string region,
+            string cachePath,
+            string timeToLive)
+            : this(bucketName, bucketHostName, bucketKeyPrefix, region, cachePath, timeToLive, null) { }
 
         public ICacheProvider CacheProvider { get; set; }
 

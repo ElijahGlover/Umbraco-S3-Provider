@@ -29,6 +29,8 @@ Update ~/Config/FileSystemProviders.config
       <add key="bucketKeyPrefix" value="media" />
       <!-- AWS Region Endpoint (us-east-1/us-west-1/ap-southeast-2) Important to get right otherwise all API requests will return a 30x response -->
       <add key="region" value="us-east-1" />
+	  <!-- S3 Canned ACL - Sets permissions for uploaded files. Defaults to public-read if the key is omitted or the value is blank. -->
+      <add key="cannedACL" value="public-read" />
     </Parameters>
   </Provider>
 </FileSystemProviders>
