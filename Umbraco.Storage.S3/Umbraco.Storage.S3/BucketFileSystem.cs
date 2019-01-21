@@ -17,6 +17,7 @@ namespace Umbraco.Storage.S3
         protected readonly string BucketName;
         protected readonly string BucketHostName;
         protected readonly string BucketPrefix;
+        protected readonly S3CannedACL ACL;
         protected const string Delimiter = "/";
         protected const int BatchSize = 1000;
 
@@ -24,8 +25,10 @@ namespace Umbraco.Storage.S3
             string bucketName,
             string bucketHostName,
             string bucketKeyPrefix,
-            string region)
+            string region,
+            string cannedACL)
         {
+
             if (string.IsNullOrEmpty(bucketName))
                 throw new ArgumentNullException("bucketName");
 
@@ -33,11 +36,19 @@ namespace Umbraco.Storage.S3
             BucketHostName = BucketExtensions.ParseBucketHostName(bucketHostName);
             BucketPrefix = BucketExtensions.ParseBucketPrefix(bucketKeyPrefix);
 
+            ACL = AclExtensions.ParseCannedAcl(cannedACL);
+
             var regionEndpoint = RegionEndpoint.GetBySystemName(region);
             ClientFactory = () => new AmazonS3Client(regionEndpoint);
             LogHelper = new LogHelperWrapper();
             MimeTypeResolver = new DefaultMimeTypeResolver();
         }
+
+        public BucketFileSystem(
+            string bucketName,
+            string bucketHostName,
+            string bucketKeyPrefix,
+            string region): this(bucketName, bucketHostName, bucketKeyPrefix, region, null) { }
 
         public Func<IAmazonS3> ClientFactory { get; set; }
 
@@ -186,12 +197,11 @@ namespace Umbraco.Storage.S3
             using (var memoryStream = new MemoryStream())
             {
                 stream.CopyTo(memoryStream);
-
                 var request = new PutObjectRequest
                 {
                     BucketName = BucketName,
                     Key = ResolveBucketPath(path),
-                    CannedACL = S3CannedACL.PublicRead,
+                    CannedACL = ACL,
                     ContentType = MimeTypeResolver.Resolve(path),
                     InputStream = memoryStream
                 };

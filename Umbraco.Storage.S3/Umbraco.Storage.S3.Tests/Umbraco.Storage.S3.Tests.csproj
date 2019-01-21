@@ -74,6 +74,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BucketExtensionsTests.cs" />
+    <Compile Include="AclExtensionsTests.cs" />
     <Compile Include="BucketFileSystemAbsoluteTests.cs" />
     <Compile Include="BucketFileSystemRelativeTests.cs" />
     <Compile Include="FileSystemCacheProviderTests.cs" />

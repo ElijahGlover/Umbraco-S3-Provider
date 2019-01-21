@@ -25,11 +25,12 @@ namespace Umbraco.Storage.S3.Tests
             string bucketName,
             string bucketHostName,
             string bucketKeyPrefix,
-            string region)
+            string region,
+            string cannedACL = null)
         {
             var logHelperMock = new Mock<ILogHelper>();
             var mimeTypeHelper = new Mock<IMimeTypeResolver>();
-            return new BucketFileSystem(bucketName, bucketHostName, bucketKeyPrefix, region)
+            return new BucketFileSystem(bucketName, bucketHostName, bucketKeyPrefix, region, cannedACL)
             {
                 ClientFactory = () => mock.Object,
                 LogHelper = logHelperMock.Object,
@@ -132,7 +133,7 @@ namespace Umbraco.Storage.S3.Tests
         public void AddFileWithBucketPrefix()
         {
             //Arrange
-            var steam = new MemoryStream();
+            var stream = new MemoryStream();
             var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(new PutObjectResponse());
@@ -140,7 +141,25 @@ namespace Umbraco.Storage.S3.Tests
             var provider = CreateProvider(clientMock);
 
             //Act
-            provider.AddFile("/media/1001/media.jpg", steam);
+            provider.AddFile("/media/1001/media.jpg", stream);
+
+            //Assert
+            clientMock.VerifyAll();
+        }
+
+        [Test]
+        public void AddFileWithValidCannedACL()
+        {
+            //Arrange
+            var stream = new MemoryStream();
+            var clientMock = new Mock<IAmazonS3>();
+            clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
+                      .Returns(new PutObjectResponse());
+
+            var provider = CreateProviderWithParams(clientMock, "test", null, "media", string.Empty, "private");
+
+            //Act
+            provider.AddFile("/media/1001/media.jpg", stream);
 
             //Assert
             clientMock.VerifyAll();

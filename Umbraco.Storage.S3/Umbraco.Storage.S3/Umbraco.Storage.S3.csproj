@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\BucketExtensions.cs" />
+    <Compile Include="Extensions\AclExtensions.cs" />
     <Compile Include="BucketFileSystem.cs" />
     <Compile Include="CachedBucketFileSystem.cs" />
     <Compile Include="Services\ICacheProvider.cs" />
