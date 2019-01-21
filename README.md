@@ -29,7 +29,7 @@ Update ~/Config/FileSystemProviders.config
       <add key="bucketKeyPrefix" value="media" />
       <!-- AWS Region Endpoint (us-east-1/us-west-1/ap-southeast-2) Important to get right otherwise all API requests will return a 30x response -->
       <add key="region" value="us-east-1" />
-	  <!-- S3 Canned ACL - Sets permissions for uploaded files. Defaults to public-read if the key is omitted or the value is blank. -->
+	  <!-- S3 Canned ACL - Sets permissions for uploaded files. Defaults to public-read if the key is omitted or the value is invalid. -->
       <add key="cannedACL" value="public-read" />
     </Parameters>
   </Provider>
@@ -58,7 +58,7 @@ Before you enable this option you might want to read how Virtual Path Providers 
 - Create/modify applications `~/global.asax`
 ```c#
 using Umbraco.Storage.S3;
-      
+
 public class Global : UmbracoApplication
 {
    protected override void OnApplicationStarting(object sender, EventArgs e)
