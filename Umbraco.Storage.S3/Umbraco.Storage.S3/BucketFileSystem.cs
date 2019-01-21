@@ -28,7 +28,7 @@ namespace Umbraco.Storage.S3
             string region,
             string cannedACL)
         {
-            
+
             if (string.IsNullOrEmpty(bucketName))
                 throw new ArgumentNullException("bucketName");
 
@@ -344,6 +344,6 @@ namespace Umbraco.Storage.S3
             //It Is Not Possible To Get Object Created Date - Bucket Versioning Required
             //Return Last Modified Date Instead
             return GetLastModified(path);
-        }    
+        }
     }
 }
