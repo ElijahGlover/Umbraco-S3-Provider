@@ -14,8 +14,9 @@ namespace Umbraco.Storage.S3
             string region,
             string cachePath,
             string timeToLive,
-            string cannedACL)
-            : base(bucketName, bucketHostName, bucketKeyPrefix, region, cannedACL)
+            string cannedACL,
+            string serverSideEncryptionMethod)
+            : base(bucketName, bucketHostName, bucketKeyPrefix, region, cannedACL, serverSideEncryptionMethod)
         {
             int timeToLiveValue;
             if (!int.TryParse(timeToLive, out timeToLiveValue))
@@ -32,7 +33,7 @@ namespace Umbraco.Storage.S3
             string region,
             string cachePath,
             string timeToLive)
-            : this(bucketName, bucketHostName, bucketKeyPrefix, region, cachePath, timeToLive, null) { }
+            : this(bucketName, bucketHostName, bucketKeyPrefix, region, cachePath, timeToLive, null, null) { }
 
         public ICacheProvider CacheProvider { get; set; }
 

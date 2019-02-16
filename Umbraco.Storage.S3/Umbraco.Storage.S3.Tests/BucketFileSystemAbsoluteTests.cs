@@ -26,11 +26,12 @@ namespace Umbraco.Storage.S3.Tests
             string bucketHostName,
             string bucketKeyPrefix,
             string region,
-            string cannedACL = null)
+            string cannedACL = null,
+            string serverSideEncryptionMethod = null)
         {
             var logHelperMock = new Mock<ILogHelper>();
             var mimeTypeHelper = new Mock<IMimeTypeResolver>();
-            return new BucketFileSystem(bucketName, bucketHostName, bucketKeyPrefix, region, cannedACL)
+            return new BucketFileSystem(bucketName, bucketHostName, bucketKeyPrefix, region, cannedACL, serverSideEncryptionMethod)
             {
                 ClientFactory = () => mock.Object,
                 LogHelper = logHelperMock.Object,
@@ -157,6 +158,24 @@ namespace Umbraco.Storage.S3.Tests
                       .Returns(new PutObjectResponse());
 
             var provider = CreateProviderWithParams(clientMock, "test", null, "media", string.Empty, "private");
+
+            //Act
+            provider.AddFile("/media/1001/media.jpg", stream);
+
+            //Assert
+            clientMock.VerifyAll();
+        }
+
+        [Test]
+        public void AddFileWithValidServerSideEncryptionMethod()
+        {
+            //Arrange
+            var stream = new MemoryStream();
+            var clientMock = new Mock<IAmazonS3>();
+            clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
+                      .Returns(new PutObjectResponse());
+
+            var provider = CreateProviderWithParams(clientMock, "test", null, "media", string.Empty, null, "AES256");
 
             //Act
             provider.AddFile("/media/1001/media.jpg", stream);
