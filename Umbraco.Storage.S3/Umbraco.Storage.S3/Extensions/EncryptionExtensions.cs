@@ -8,8 +8,8 @@ namespace Umbraco.Storage.S3.Extensions
         private static string[] ValidServerSideEncryptionMethods = new string[]
         {
             "AES256",
-            "AWSKMS",
-            "None",
+            "aws:kms",
+            "",
         };
 
         public static ServerSideEncryptionMethod ParseServerSideEncryptionMethod(string ssemParam)

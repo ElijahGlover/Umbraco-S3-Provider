@@ -34,10 +34,10 @@ namespace Umbraco.Storage.S3.Tests
             var encrypt_AES256 = EncryptionExtensions.ParseServerSideEncryptionMethod("AES256");
             Assert.AreEqual(ServerSideEncryptionMethod.AES256, encrypt_AES256);
 
-            var encrypt_AWSKMS = EncryptionExtensions.ParseServerSideEncryptionMethod("AWSKMS");
+            var encrypt_AWSKMS = EncryptionExtensions.ParseServerSideEncryptionMethod("aws:kms");
             Assert.AreEqual(ServerSideEncryptionMethod.AWSKMS, encrypt_AWSKMS);
 
-            var encrypt_None = EncryptionExtensions.ParseServerSideEncryptionMethod("None");
+            var encrypt_None = EncryptionExtensions.ParseServerSideEncryptionMethod("");
             Assert.AreEqual(ServerSideEncryptionMethod.None, encrypt_None);
         }
 
