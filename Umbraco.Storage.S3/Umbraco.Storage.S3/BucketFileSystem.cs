@@ -17,6 +17,7 @@ namespace Umbraco.Storage.S3
         protected readonly string BucketName;
         protected readonly string BucketHostName;
         protected readonly string BucketPrefix;
+        protected readonly ServerSideEncryptionMethod ServerSideEncryptionMethod;
         protected readonly S3CannedACL ACL;
         protected const string Delimiter = "/";
         protected const int BatchSize = 1000;
@@ -26,7 +27,8 @@ namespace Umbraco.Storage.S3
             string bucketHostName,
             string bucketKeyPrefix,
             string region,
-            string cannedACL)
+            string cannedACL,
+            string serverSideEncryptionMethod)
         {
 
             if (string.IsNullOrEmpty(bucketName))
@@ -35,6 +37,8 @@ namespace Umbraco.Storage.S3
             BucketName = bucketName;
             BucketHostName = BucketExtensions.ParseBucketHostName(bucketHostName);
             BucketPrefix = BucketExtensions.ParseBucketPrefix(bucketKeyPrefix);
+
+            ServerSideEncryptionMethod = EncryptionExtensions.ParseServerSideEncryptionMethod(serverSideEncryptionMethod);
 
             ACL = AclExtensions.ParseCannedAcl(cannedACL);
 
@@ -48,7 +52,7 @@ namespace Umbraco.Storage.S3
             string bucketName,
             string bucketHostName,
             string bucketKeyPrefix,
-            string region): this(bucketName, bucketHostName, bucketKeyPrefix, region, null) { }
+            string region): this(bucketName, bucketHostName, bucketKeyPrefix, region, null, null) { }
 
         public Func<IAmazonS3> ClientFactory { get; set; }
 
@@ -203,7 +207,8 @@ namespace Umbraco.Storage.S3
                     Key = ResolveBucketPath(path),
                     CannedACL = ACL,
                     ContentType = MimeTypeResolver.Resolve(path),
-                    InputStream = memoryStream
+                    InputStream = memoryStream,
+                    ServerSideEncryptionMethod = ServerSideEncryptionMethod
                 };
 
                 var response = Execute(client => client.PutObject(request));

@@ -61,6 +61,7 @@
     <Compile Include="Extensions\AclExtensions.cs" />
     <Compile Include="BucketFileSystem.cs" />
     <Compile Include="CachedBucketFileSystem.cs" />
+    <Compile Include="Extensions\EncryptionExtensions.cs" />
     <Compile Include="Services\ICacheProvider.cs" />
     <Compile Include="Services\IFileSystemWrapper.cs" />
     <Compile Include="Services\Impl\MimeTypeResolver.cs" />

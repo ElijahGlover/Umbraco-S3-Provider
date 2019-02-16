@@ -77,6 +77,7 @@
     <Compile Include="AclExtensionsTests.cs" />
     <Compile Include="BucketFileSystemAbsoluteTests.cs" />
     <Compile Include="BucketFileSystemRelativeTests.cs" />
+    <Compile Include="EncryptionExtensionsTests.cs" />
     <Compile Include="FileSystemCacheProviderTests.cs" />
     <Compile Include="FileSystemVirtualPathProviderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
