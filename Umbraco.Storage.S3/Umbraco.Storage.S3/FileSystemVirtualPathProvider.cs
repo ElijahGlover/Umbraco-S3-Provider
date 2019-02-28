@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Web.Hosting;
+using Umbraco.Core.Composing;
 using Umbraco.Core.IO;
 
 namespace Umbraco.Storage.S3
@@ -73,7 +74,8 @@ namespace Umbraco.Storage.S3
         {
             if (string.IsNullOrEmpty(pathPrefix))
                 throw new ArgumentNullException("pathPrefix");
-            var fileSystem = new Lazy<IFileSystem>(() => FileSystemProviderManager.Current.GetFileSystemProvider<TProviderTypeFilter>());
+
+            var fileSystem = new Lazy<IFileSystem>(() => Current.MediaFileSystem.Unwrap());
             var provider = new FileSystemVirtualPathProvider(pathPrefix, fileSystem);
             HostingEnvironment.RegisterVirtualPathProvider(provider);
         }

@@ -60,6 +60,8 @@ namespace Umbraco.Storage.S3
 
         public IMimeTypeResolver MimeTypeResolver { get; set; }
 
+        public bool CanAddPhysical => false;
+
         protected virtual T Execute<T>(Func<IAmazonS3, T> request)
         {
             using (var client = ClientFactory())
@@ -216,6 +218,11 @@ namespace Umbraco.Storage.S3
             }
         }
 
+        public void AddFile(string path, string physicalPath, bool overrideIfExists = true, bool copy = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public virtual IEnumerable<string> GetFiles(string path)
         {
             return GetFiles(path, "*.*");
@@ -333,15 +340,8 @@ namespace Umbraco.Storage.S3
                 Key = ResolveBucketPath(path)
             };
 
-            try
-            {
-                var response = Execute(client => client.GetObjectMetadata(request));
-                return new DateTimeOffset(response.LastModified);
-            }
-            catch (FileNotFoundException)
-            {
-                return DateTimeOffset.MinValue;
-            }
+            var response = Execute(client => client.GetObjectMetadata(request));
+            return new DateTimeOffset(response.LastModified);
         }
 
         public virtual DateTimeOffset GetCreated(string path)
@@ -349,6 +349,18 @@ namespace Umbraco.Storage.S3
             //It Is Not Possible To Get Object Created Date - Bucket Versioning Required
             //Return Last Modified Date Instead
             return GetLastModified(path);
+        }
+
+        public long GetSize(string path)
+        {
+            var request = new GetObjectMetadataRequest
+            {
+                BucketName = BucketName,
+                Key = ResolveBucketPath(path)
+            };
+
+            var response = Execute(client => client.GetObjectMetadata(request));
+            return response.ContentLength;
         }
     }
 }
