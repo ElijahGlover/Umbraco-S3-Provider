@@ -54,23 +54,23 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BucketFileSystemComponent.cs" />
+    <Compile Include="BucketFileSystemComposer.cs" />
     <Compile Include="Extensions\BucketExtensions.cs" />
     <Compile Include="Extensions\AclExtensions.cs" />
     <Compile Include="BucketFileSystem.cs" />
-    <Compile Include="CachedBucketFileSystem.cs" />
     <Compile Include="Extensions\EncryptionExtensions.cs" />
-    <Compile Include="Services\ICacheProvider.cs" />
+    <Compile Include="Services\IFileCacheProvider.cs" />
     <Compile Include="Services\IFileSystemWrapper.cs" />
-    <Compile Include="Services\Impl\MimeTypeResolver.cs" />
+    <Compile Include="BucketFileSystemConfig.cs" />
+    <Compile Include="Services\MimeTypeResolver.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="FileSystemVirtualPathProvider.cs" />
     <Compile Include="FileSystemVirtualPathProviderFile.cs" />
-    <Compile Include="Services\ILogHelper.cs" />
     <Compile Include="Services\IMimeTypeResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\Impl\FileSystemCacheProvider.cs" />
-    <Compile Include="Services\Impl\FileSystemWrapper.cs" />
-    <Compile Include="Services\Impl\LogHelperWrapper.cs" />
+    <Compile Include="Services\FileSystemCacheProvider.cs" />
+    <Compile Include="Services\FileSystemWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

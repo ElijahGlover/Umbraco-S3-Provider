@@ -9,6 +9,7 @@ using Amazon.S3.Model;
 using Moq;
 using NUnit.Framework;
 using Umbraco.Storage.S3.Services;
+using Umbraco.Core.Logging;
 
 namespace Umbraco.Storage.S3.Tests
 {
@@ -29,14 +30,18 @@ namespace Umbraco.Storage.S3.Tests
             string cannedACL = null,
             string serverSideEncryptionMethod = null)
         {
-            var logHelperMock = new Mock<ILogHelper>();
-            var mimeTypeHelper = new Mock<IMimeTypeResolver>();
-            return new BucketFileSystem(bucketName, bucketHostName, bucketKeyPrefix, region, cannedACL, serverSideEncryptionMethod)
+            var logHelperMock = new Mock<ILogger>();
+            var mimeTypeResolver = new Mock<IMimeTypeResolver>();
+            var config = new BucketFileSystemConfig()
             {
-                ClientFactory = () => mock.Object,
-                LogHelper = logHelperMock.Object,
-                MimeTypeResolver = mimeTypeHelper.Object
+                BucketName = bucketName,
+                BucketHostName = bucketHostName,
+                BucketPrefix = bucketKeyPrefix,
+                Region = region,
+                CannedACL = cannedACL,
+                ServerSideEncryptionMethod = serverSideEncryptionMethod
             };
+            return new BucketFileSystem(config, mimeTypeResolver.Object, null, mock.Object, logHelperMock.Object);
         }
 
         [Test]

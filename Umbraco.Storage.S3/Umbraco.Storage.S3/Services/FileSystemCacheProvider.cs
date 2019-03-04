@@ -4,9 +4,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Umbraco.Storage.S3.Services.Impl
+namespace Umbraco.Storage.S3.Services
 {
-    public class FileSystemCacheProvider : ICacheProvider
+    public class FileSystemCacheProvider : IFileCacheProvider
     {
         private readonly TimeSpan _timeToLive;
         private readonly string _cachePath;

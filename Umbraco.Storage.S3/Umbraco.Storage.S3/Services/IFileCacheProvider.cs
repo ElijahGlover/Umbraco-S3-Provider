@@ -2,7 +2,7 @@
 
 namespace Umbraco.Storage.S3.Services
 {
-    public interface ICacheProvider
+    public interface IFileCacheProvider
     {
         bool Exists(string key);
         void Persist(string key, Stream stream);

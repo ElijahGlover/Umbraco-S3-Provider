@@ -2,7 +2,7 @@
 using System.IO;
 using System.Web.Hosting;
 
-namespace Umbraco.Storage.S3.Services.Impl
+namespace Umbraco.Storage.S3.Services
 {
     public class FileSystemWrapper : IFileSystemWrapper
     {

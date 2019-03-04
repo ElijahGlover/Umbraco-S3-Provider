@@ -2,80 +2,56 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using Amazon;
 using Amazon.S3;
 using Umbraco.Core.IO;
 using Amazon.S3.Model;
+using Umbraco.Core.Logging;
 using Umbraco.Storage.S3.Extensions;
 using Umbraco.Storage.S3.Services;
-using Umbraco.Storage.S3.Services.Impl;
 
 namespace Umbraco.Storage.S3
 {
     public class BucketFileSystem : IFileSystem
     {
-        protected readonly string BucketName;
-        protected readonly string BucketHostName;
-        protected readonly string BucketPrefix;
-        protected readonly ServerSideEncryptionMethod ServerSideEncryptionMethod;
-        protected readonly S3CannedACL ACL;
+        protected readonly ILogger Logger;
+        protected readonly BucketFileSystemConfig Config;
+        protected readonly IFileCacheProvider FileCacheProvider;
+        protected readonly IMimeTypeResolver MimeTypeResolver;
+        protected readonly IAmazonS3 S3Client;
+
         protected const string Delimiter = "/";
         protected const int BatchSize = 1000;
 
         public BucketFileSystem(
-            string bucketName,
-            string bucketHostName,
-            string bucketKeyPrefix,
-            string region,
-            string cannedACL,
-            string serverSideEncryptionMethod)
+            BucketFileSystemConfig config,
+            IMimeTypeResolver mimeTypeResolver,
+            IFileCacheProvider fileCacheProvider,
+            IAmazonS3 s3Client,
+            ILogger logger)
         {
-
-            if (string.IsNullOrEmpty(bucketName))
-                throw new ArgumentNullException("bucketName");
-
-            BucketName = bucketName;
-            BucketHostName = BucketExtensions.ParseBucketHostName(bucketHostName);
-            BucketPrefix = BucketExtensions.ParseBucketPrefix(bucketKeyPrefix);
-
-            ServerSideEncryptionMethod = EncryptionExtensions.ParseServerSideEncryptionMethod(serverSideEncryptionMethod);
-
-            ACL = AclExtensions.ParseCannedAcl(cannedACL);
-
-            var regionEndpoint = RegionEndpoint.GetBySystemName(region);
-            ClientFactory = () => new AmazonS3Client(regionEndpoint);
-            LogHelper = new LogHelperWrapper();
-            MimeTypeResolver = new DefaultMimeTypeResolver();
+            Config = config;
+            FileCacheProvider = fileCacheProvider;
+            MimeTypeResolver = mimeTypeResolver;
+            Logger = logger;
+            S3Client = s3Client;
         }
-
-        public BucketFileSystem(
-            string bucketName,
-            string bucketHostName,
-            string bucketKeyPrefix,
-            string region): this(bucketName, bucketHostName, bucketKeyPrefix, region, null, null) { }
-
-        public Func<IAmazonS3> ClientFactory { get; set; }
-
-        public ILogHelper LogHelper { get; set; }
-
-        public IMimeTypeResolver MimeTypeResolver { get; set; }
 
         public bool CanAddPhysical => false;
 
         protected virtual T Execute<T>(Func<IAmazonS3, T> request)
         {
-            using (var client = ClientFactory())
-            {
-                try {
-                    return request(client);
-                } catch (AmazonS3Exception ex) {
-                    if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-                        throw new FileNotFoundException(ex.Message, ex);
-                    if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                        throw new UnauthorizedAccessException(ex.Message, ex);
-                    LogHelper.Error<BucketFileSystem>(string.Format("S3 Bucket Error {0} {1}", ex.ErrorCode, ex.Message), ex);
-                    throw;
-                }
+            try {
+                return request(S3Client);
+            } catch (AmazonS3Exception ex) {
+                if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    throw new FileNotFoundException(ex.Message, ex);
+                if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    throw new UnauthorizedAccessException(ex.Message, ex);
+
+                Logger.Error<BucketFileSystem>(string.Format("S3 Bucket Error {0} {1}", ex.ErrorCode, ex.Message), ex);
+                throw;
             }
         }
 
@@ -95,33 +71,33 @@ namespace Umbraco.Storage.S3
         protected virtual string ResolveBucketPath(string path, bool isDir = false)
         {
             if (string.IsNullOrEmpty(path))
-                return BucketPrefix;
+                return Config.BucketPrefix;
 
             //Remove Bucket Hostname
-            if (!path.Equals("/") && path.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
-                path = path.Substring(BucketHostName.Length);
+            if (!path.Equals("/") && path.StartsWith(Config.BucketHostName, StringComparison.InvariantCultureIgnoreCase))
+                path = path.Substring(Config.BucketHostName.Length);
 
             path = path.Replace("\\", Delimiter);
             if (path == Delimiter)
-                return BucketPrefix;
+                return Config.BucketPrefix;
 
             if (path.StartsWith(Delimiter))
                 path = path.Substring(1);
 
             //Remove Key Prefix If Duplicate
-            if (path.StartsWith(BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
-                path = path.Substring(BucketPrefix.Length);
+            if (path.StartsWith(Config.BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
+                path = path.Substring(Config.BucketPrefix.Length);
 
             if (isDir && (!path.EndsWith(Delimiter)))
                 path = string.Concat(path, Delimiter);
 
-            return string.Concat(BucketPrefix, path);
+            return string.Concat(Config.BucketPrefix, path);
         }
 
         protected virtual string RemovePrefix(string key)
         {
-            if (!string.IsNullOrEmpty(BucketPrefix) && key.StartsWith(BucketPrefix))
-                key = key.Substring(BucketPrefix.Length);
+            if (!string.IsNullOrEmpty(Config.BucketPrefix) && key.StartsWith(Config.BucketPrefix))
+                key = key.Substring(Config.BucketPrefix.Length);
 
             if (key.EndsWith(Delimiter))
                 key = key.Substring(0, key.Length - Delimiter.Length);
@@ -136,7 +112,7 @@ namespace Umbraco.Storage.S3
             path = ResolveBucketPath(path, true);
             var request = new ListObjectsRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Delimiter = Delimiter,
                 Prefix = path
             };
@@ -158,7 +134,7 @@ namespace Umbraco.Storage.S3
             //List Objects To Delete
             var listRequest = new ListObjectsRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Prefix = ResolveBucketPath(path, true)
             };
 
@@ -173,7 +149,7 @@ namespace Umbraco.Storage.S3
             {
                 var deleteRequest = new DeleteObjectsRequest
                 {
-                    BucketName = BucketName,
+                    BucketName = Config.BucketName,
                     Objects = items.ToList()
                 };
                 Execute(client => client.DeleteObjects(deleteRequest));
@@ -184,7 +160,7 @@ namespace Umbraco.Storage.S3
         {
             var request = new ListObjectsRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Prefix = ResolveBucketPath(path, true),
                 MaxKeys = 1
             };
@@ -205,16 +181,16 @@ namespace Umbraco.Storage.S3
                 stream.CopyTo(memoryStream);
                 var request = new PutObjectRequest
                 {
-                    BucketName = BucketName,
+                    BucketName = Config.BucketName,
                     Key = ResolveBucketPath(path),
-                    CannedACL = ACL,
+                    CannedACL = Config.CannedACL,
                     ContentType = MimeTypeResolver.Resolve(path),
                     InputStream = memoryStream,
-                    ServerSideEncryptionMethod = ServerSideEncryptionMethod
+                    ServerSideEncryptionMethod = Config.ServerSideEncryptionMethod
                 };
 
                 var response = Execute(client => client.PutObject(request));
-                LogHelper.Info<BucketFileSystem>(string.Format("Object {0} Created, Id:{1}, Hash:{2}", path, response.VersionId, response.ETag));
+                this.Logger.Info<BucketFileSystem>(string.Format("Object {0} Created, Id:{1}, Hash:{2}", path, response.VersionId, response.ETag));
             }
         }
 
@@ -242,7 +218,7 @@ namespace Umbraco.Storage.S3
 
             var request = new ListObjectsRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Delimiter = Delimiter,
                 Prefix = path + filename
             };
@@ -258,9 +234,16 @@ namespace Umbraco.Storage.S3
 
         public virtual Stream OpenFile(string path)
         {
+            if (FileCacheProvider != null)
+            {
+                var persistedStream = FileCacheProvider.Resolve(path);
+                if (persistedStream != null)
+                    return persistedStream;
+            }
+            
             var request = new GetObjectRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Key = ResolveBucketPath(path)
             };
 
@@ -270,7 +253,13 @@ namespace Umbraco.Storage.S3
                 stream = new MemoryStream();
                 response.ResponseStream.CopyTo(stream);
             }
-            stream.Seek(0, SeekOrigin.Begin);
+
+            if (stream.CanSeek)
+                stream.Seek(0, SeekOrigin.Begin);
+
+            if (FileCacheProvider != null)
+                FileCacheProvider.Persist(path, stream);
+
             return stream;
         }
 
@@ -278,7 +267,7 @@ namespace Umbraco.Storage.S3
         {
             var request = new DeleteObjectRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Key = ResolveBucketPath(path)
             };
             Execute(client => client.DeleteObject(request));
@@ -286,9 +275,12 @@ namespace Umbraco.Storage.S3
 
         public virtual bool FileExists(string path)
         {
+            if (FileCacheProvider != null && FileCacheProvider.Exists(path))
+                return true;
+
             var request = new GetObjectMetadataRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Key = ResolveBucketPath(path)
             };
 
@@ -312,12 +304,12 @@ namespace Umbraco.Storage.S3
                 fullPathOrUrl = fullPathOrUrl.Substring(1);
 
             //Strip Hostname
-            if (fullPathOrUrl.StartsWith(BucketHostName, StringComparison.InvariantCultureIgnoreCase))
-                fullPathOrUrl = fullPathOrUrl.Substring(BucketHostName.Length);
+            if (fullPathOrUrl.StartsWith(Config.BucketHostName, StringComparison.InvariantCultureIgnoreCase))
+                fullPathOrUrl = fullPathOrUrl.Substring(Config.BucketHostName.Length);
 
             //Strip Bucket Prefix
-            if (fullPathOrUrl.StartsWith(BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
-                return fullPathOrUrl.Substring(BucketPrefix.Length);
+            if (fullPathOrUrl.StartsWith(Config.BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
+                return fullPathOrUrl.Substring(Config.BucketPrefix.Length);
 
             return fullPathOrUrl;
         }
@@ -329,14 +321,14 @@ namespace Umbraco.Storage.S3
 
         public virtual string GetUrl(string path)
         {
-            return string.Concat(BucketHostName, ResolveBucketPath(path));
+            return string.Concat(Config.BucketHostName, ResolveBucketPath(path));
         }
 
         public virtual DateTimeOffset GetLastModified(string path)
         {
             var request = new GetObjectMetadataRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Key = ResolveBucketPath(path)
             };
 
@@ -355,7 +347,7 @@ namespace Umbraco.Storage.S3
         {
             var request = new GetObjectMetadataRequest
             {
-                BucketName = BucketName,
+                BucketName = Config.BucketName,
                 Key = ResolveBucketPath(path)
             };
 

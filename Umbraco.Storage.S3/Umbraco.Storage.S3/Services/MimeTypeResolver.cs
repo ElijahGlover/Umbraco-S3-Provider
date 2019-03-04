@@ -1,4 +1,4 @@
-﻿namespace Umbraco.Storage.S3.Services.Impl
+﻿namespace Umbraco.Storage.S3.Services
 {
     public class DefaultMimeTypeResolver : IMimeTypeResolver
     {
