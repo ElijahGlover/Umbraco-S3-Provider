@@ -3,7 +3,6 @@ using System.IO;
 using Moq;
 using NUnit.Framework;
 using Umbraco.Storage.S3.Services;
-using Umbraco.Storage.S3.Services.Impl;
 
 namespace Umbraco.Storage.S3.Tests
 {
