@@ -15,8 +15,8 @@ namespace Umbraco.Storage.S3
 {
     public class BucketFileSystem : IFileSystem
     {
-        protected readonly ILogger Logger;
         protected readonly BucketFileSystemConfig Config;
+        protected readonly ILogger Logger;
         protected readonly IFileCacheProvider FileCacheProvider;
         protected readonly IMimeTypeResolver MimeTypeResolver;
         protected readonly IAmazonS3 S3Client;
@@ -28,23 +28,27 @@ namespace Umbraco.Storage.S3
             BucketFileSystemConfig config,
             IMimeTypeResolver mimeTypeResolver,
             IFileCacheProvider fileCacheProvider,
-            IAmazonS3 s3Client,
             ILogger logger)
         {
             Config = config;
             FileCacheProvider = fileCacheProvider;
             MimeTypeResolver = mimeTypeResolver;
             Logger = logger;
-            S3Client = s3Client;
+            S3Client = new AmazonS3Client(RegionEndpoint.GetBySystemName(config.Region));
+
         }
 
         public bool CanAddPhysical => false;
+        public string PathPrefix => Config.BucketPrefix;
 
         protected virtual T Execute<T>(Func<IAmazonS3, T> request)
         {
-            try {
+            try
+            {
                 return request(S3Client);
-            } catch (AmazonS3Exception ex) {
+            }
+            catch (AmazonS3Exception ex)
+            {
                 if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
                     throw new FileNotFoundException(ex.Message, ex);
                 if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -91,7 +95,10 @@ namespace Umbraco.Storage.S3
             if (isDir && (!path.EndsWith(Delimiter)))
                 path = string.Concat(path, Delimiter);
 
-            return string.Concat(Config.BucketPrefix, path);
+            if (path.StartsWith(Delimiter))
+                path = path.Substring(1);
+
+            return string.Concat(Config.BucketPrefix, "/", path);
         }
 
         protected virtual string RemovePrefix(string key)
@@ -240,7 +247,7 @@ namespace Umbraco.Storage.S3
                 if (persistedStream != null)
                     return persistedStream;
             }
-            
+
             var request = new GetObjectRequest
             {
                 BucketName = Config.BucketName,
@@ -321,7 +328,7 @@ namespace Umbraco.Storage.S3
 
         public virtual string GetUrl(string path)
         {
-            return string.Concat(Config.BucketHostName, ResolveBucketPath(path));
+            return string.Concat(Config.BucketHostName, "/", ResolveBucketPath(path));
         }
 
         public virtual DateTimeOffset GetLastModified(string path)

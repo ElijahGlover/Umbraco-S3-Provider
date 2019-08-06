@@ -18,7 +18,7 @@ namespace Umbraco.Storage.S3.Tests
                 BucketName = "test",
                 BucketPrefix = "media"
             };
-            return new BucketFileSystem(config, mimeTypeResolverMock.Object, null, mock.Object, loggerMock.Object);
+            return new BucketFileSystem(config, mimeTypeResolverMock.Object, null, loggerMock.Object);
         }
 
         [Test]

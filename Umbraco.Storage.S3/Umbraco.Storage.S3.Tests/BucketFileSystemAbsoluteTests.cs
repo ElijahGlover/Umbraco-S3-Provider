@@ -41,7 +41,7 @@ namespace Umbraco.Storage.S3.Tests
                 CannedACL = cannedACL,
                 ServerSideEncryptionMethod = serverSideEncryptionMethod
             };
-            return new BucketFileSystem(config, mimeTypeResolver.Object, null, mock.Object, logHelperMock.Object);
+            return new BucketFileSystem(config, mimeTypeResolver.Object, null, logHelperMock.Object);
         }
 
         [Test]

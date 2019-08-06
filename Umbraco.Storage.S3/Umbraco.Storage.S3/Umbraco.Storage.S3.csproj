@@ -47,6 +47,7 @@
       <HintPath>..\packages\AWSSDK.S3.3.3.31.20\lib\net45\AWSSDK.S3.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
     <Reference Include="Umbraco.Core">
