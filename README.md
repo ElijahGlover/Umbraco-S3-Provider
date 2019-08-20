@@ -27,7 +27,9 @@ Add the following keys to `~/Web.config`
 </configuration>
 ```
 `Region`, `BucketPrefix`, and `BucketName` are always required.
+
 If `DisableVirtualPathProvider` is set to `true`, you must include `BucketHostname`. However, if `DisableVirtualPathProvider` is set to `false` then `BucketHostname` doesn't have any effect.
+
 `DisableVirtualPathProvider` defaults to `false`.
 
 Ok so where are the [IAM access keys?](http://docs.aws.amazon.com/IAM/latest/UserGuide/ManagingCredentials.html) Depending on how you host your project they already exist if deploying inside an EC2 instance via environment variables specified during deployment and creation of infrastructure.
@@ -43,6 +45,7 @@ If you aren't using EC2/ElasticBeanstalk to access generated temporary keys, you
   </appSettings>
 </configuration>
 ```
+
 
 If you have left `DisableVirtualPathProvider` as the default, then you'll need to add the following to `~/Web.config`
 ```xml
