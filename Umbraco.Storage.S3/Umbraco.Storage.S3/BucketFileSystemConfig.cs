@@ -15,5 +15,7 @@ namespace Umbraco.Storage.S3
         public S3CannedACL CannedACL { get; set; }
 
         public ServerSideEncryptionMethod ServerSideEncryptionMethod { get; set; }
+
+        public bool DisableVirtualPathProvider { get; set; }
     }
 }

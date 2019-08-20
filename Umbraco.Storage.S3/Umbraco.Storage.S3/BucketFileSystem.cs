@@ -328,7 +328,21 @@ namespace Umbraco.Storage.S3
 
         public virtual string GetUrl(string path)
         {
-            return string.Concat(Config.BucketHostName, "/", ResolveBucketPath(path));
+            var hostName = Config.BucketHostName;
+
+            if (Config.DisableVirtualPathProvider) {
+                var protocol = hostName.Substring(0, 7).ToLower();
+                if (protocol != "https:/" && protocol != "http://")
+                {
+                    hostName = "https://" + hostName;
+                }
+            }
+            else
+            {
+                hostName = "";
+            }
+
+            return string.Concat(hostName, "/", ResolveBucketPath(path));
         }
 
         public virtual DateTimeOffset GetLastModified(string path)
