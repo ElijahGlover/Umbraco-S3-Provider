@@ -28,14 +28,14 @@ namespace Umbraco.Storage.S3
             BucketFileSystemConfig config,
             IMimeTypeResolver mimeTypeResolver,
             IFileCacheProvider fileCacheProvider,
-            ILogger logger)
+            ILogger logger,
+            IAmazonS3 s3Client)
         {
             Config = config;
             FileCacheProvider = fileCacheProvider;
             MimeTypeResolver = mimeTypeResolver;
             Logger = logger;
-            S3Client = new AmazonS3Client(RegionEndpoint.GetBySystemName(config.Region));
-
+            S3Client = s3Client;
         }
 
         public bool CanAddPhysical => false;

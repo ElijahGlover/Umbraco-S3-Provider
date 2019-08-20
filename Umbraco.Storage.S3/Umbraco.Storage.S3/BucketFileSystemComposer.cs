@@ -24,7 +24,13 @@ namespace Umbraco.Storage.S3
                 composition.RegisterUnique(config);
                 composition.Register<IMimeTypeResolver>(new DefaultMimeTypeResolver());
 
-                composition.SetMediaFileSystem((f) => new BucketFileSystem(config, f.GetInstance<IMimeTypeResolver>(), null, f.GetInstance<ILogger>())); ;
+                composition.SetMediaFileSystem((f) => new BucketFileSystem(
+                    config,
+                    f.GetInstance<IMimeTypeResolver>(),
+                    null,
+                    f.GetInstance<ILogger>(),
+                    new AmazonS3Client(Amazon.RegionEndpoint.GetBySystemName(config.Region))
+                ));
 
                 composition.Components().Append<BucketFileSystemComponent>();
 
