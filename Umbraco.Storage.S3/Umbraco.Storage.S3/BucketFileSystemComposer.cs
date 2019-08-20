@@ -13,6 +13,8 @@ namespace Umbraco.Storage.S3
     {
         private const string AppSettingsKey = "BucketFileSystem";
         private const string ProviderAlias = "media";
+        private readonly char[] Delimiters = "/".ToCharArray();
+
         public void Compose(Composition composition)
         {
 
@@ -42,7 +44,7 @@ namespace Umbraco.Storage.S3
         {
             var bucketName = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketName"];
             var bucketHostName = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketHostname"];
-            var bucketPrefix = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketPrefix"];
+            var bucketPrefix = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketPrefix"].TrimStart(Delimiters).TrimEnd(Delimiters);
             var region = ConfigurationManager.AppSettings[$"{AppSettingsKey}:Region"];
             bool.TryParse(ConfigurationManager.AppSettings[$"{AppSettingsKey}:DisableVirtualPathProvider"], out var disableVirtualPathProvider);
 
