@@ -16,7 +16,10 @@ namespace Umbraco.Storage.S3.Tests
             var config = new BucketFileSystemConfig()
             {
                 BucketName = "test",
-                BucketPrefix = "media"
+                BucketHostName = string.Empty,
+                BucketPrefix = "media",
+                Region = string.Empty,
+                DisableVirtualPathProvider = false
             };
             return new BucketFileSystem(config, mimeTypeResolverMock.Object, null, loggerMock.Object, mock?.Object);
         }

@@ -81,9 +81,8 @@ namespace Umbraco.Storage.S3
             if (!path.Equals("/") && path.StartsWith(Config.BucketHostName, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(Config.BucketHostName.Length);
 
-            path = path.Replace("\\", Delimiter);
-            if (path == Delimiter)
-                return Config.BucketPrefix;
+            // Equalise delimiters
+            path = path.Replace("/", Delimiter).Replace("\\", Delimiter);
 
             if (path.StartsWith(Delimiter))
                 path = path.Substring(1);
@@ -106,9 +105,7 @@ namespace Umbraco.Storage.S3
             if (!string.IsNullOrEmpty(Config.BucketPrefix) && key.StartsWith(Config.BucketPrefix))
                 key = key.Substring(Config.BucketPrefix.Length);
 
-            if (key.EndsWith(Delimiter))
-                key = key.Substring(0, key.Length - Delimiter.Length);
-            return key;
+            return key.TrimStart(Delimiter.ToCharArray()).TrimEnd(Delimiter.ToCharArray());
         }
 
         public virtual IEnumerable<string> GetDirectories(string path)
@@ -307,16 +304,32 @@ namespace Umbraco.Storage.S3
             if (string.IsNullOrEmpty(fullPathOrUrl))
                 return string.Empty;
 
-            if (fullPathOrUrl.StartsWith(Delimiter))
-                fullPathOrUrl = fullPathOrUrl.Substring(1);
+            //Strip protocol if not in hostname
+            if (!Config.BucketHostName.StartsWith("http"))
+            {
+                if (fullPathOrUrl.StartsWith("https://"))
+                {
+                    fullPathOrUrl = fullPathOrUrl.Substring("https://".Length);
+                }
+                if (fullPathOrUrl.StartsWith("http://"))
+                {
+                    fullPathOrUrl = fullPathOrUrl.Substring("http://".Length);
+                }
+            }
 
             //Strip Hostname
             if (fullPathOrUrl.StartsWith(Config.BucketHostName, StringComparison.InvariantCultureIgnoreCase))
+            {
                 fullPathOrUrl = fullPathOrUrl.Substring(Config.BucketHostName.Length);
+                fullPathOrUrl = fullPathOrUrl.TrimStart(Delimiter.ToCharArray());
+            }
 
             //Strip Bucket Prefix
             if (fullPathOrUrl.StartsWith(Config.BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
-                return fullPathOrUrl.Substring(Config.BucketPrefix.Length);
+            {
+                fullPathOrUrl = fullPathOrUrl.Substring(Config.BucketPrefix.Length);
+                fullPathOrUrl = fullPathOrUrl.TrimStart(Delimiter.ToCharArray());
+            }
 
             return fullPathOrUrl;
         }
@@ -330,12 +343,10 @@ namespace Umbraco.Storage.S3
         {
             var hostName = Config.BucketHostName;
 
-            if (Config.DisableVirtualPathProvider) {
-                var protocol = hostName.Substring(0, 7).ToLower();
-                if (protocol != "https:/" && protocol != "http://")
-                {
+            if (Config.DisableVirtualPathProvider)
+            {
+                if (!hostName.StartsWith("http://") && !hostName.StartsWith("https://"))
                     hostName = "https://" + hostName;
-                }
             }
             else
             {
