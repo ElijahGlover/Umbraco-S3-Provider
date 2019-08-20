@@ -28,26 +28,11 @@ Add the following keys to `~/Web.config`
 ```
 `Region`, `BucketPrefix`, and `BucketName` are always required.
 
-If `DisableVirtualPathProvider` is set to `true`, you must include `BucketHostname`. However, if `DisableVirtualPathProvider` is set to `false` then `BucketHostname` doesn't have any effect.
+`DisableVirtualPathProvider` can be left empty as it will default to `false`.
 
-`DisableVirtualPathProvider` defaults to `false`.
+If `DisableVirtualPathProvider` is set to `true`, you must include `BucketHostname`. However, if `DisableVirtualPathProvider` is set to `false` then `BucketHostname` can be left empty, as it doesn't have any effect.
 
-Ok so where are the [IAM access keys?](http://docs.aws.amazon.com/IAM/latest/UserGuide/ManagingCredentials.html) Depending on how you host your project they already exist if deploying inside an EC2 instance via environment variables specified during deployment and creation of infrastructure.
-It's also a good idea to use [AWS best security practices](http://docs.aws.amazon.com/general/latest/gr/aws-access-keys-best-practices.html). Like not using your root access account, use short lived access keys and don't EVER commit them to source control.
-
-If you aren't using EC2/ElasticBeanstalk to access generated temporary keys, you can put them into `~/Web.config`
-```xml
-<?xml version="1.0"?>
-<configuration>
-  <appSettings>
-    <add key="AWSAccessKey" value="" />
-    <add key="AWSSecretKey" value="" />
-  </appSettings>
-</configuration>
-```
-
-
-If you have left `DisableVirtualPathProvider` as the default, then you'll need to add the following to `~/Web.config`
+If `DisableVirtualPathProvider` is set to `default` or left empty, then you'll need to add the following to `~/Web.config`
 ```xml
 <?xml version="1.0"?>
 <configuration>
@@ -74,6 +59,24 @@ You also need to add the following to `~/Media/Web.config`
   </system.webServer>
 </configuration>
 ```
+
+
+## AWS Authentication
+
+Ok so where are the [IAM access keys?](http://docs.aws.amazon.com/IAM/latest/UserGuide/ManagingCredentials.html) Depending on how you host your project they already exist if deploying inside an EC2 instance via environment variables specified during deployment and creation of infrastructure.
+It's also a good idea to use [AWS best security practices](http://docs.aws.amazon.com/general/latest/gr/aws-access-keys-best-practices.html). Like not using your root access account, use short lived access keys and don't EVER commit them to source control.
+
+If you aren't using EC2/ElasticBeanstalk to access generated temporary keys, you can put them into `~/Web.config`
+```xml
+<?xml version="1.0"?>
+<configuration>
+  <appSettings>
+    <add key="AWSAccessKey" value="" />
+    <add key="AWSSecretKey" value="" />
+  </appSettings>
+</configuration>
+```
+
 
 ## Should I use the Virtual Path Provider?
 Using a custom [Virtual Path Provider](https://msdn.microsoft.com/en-us/library/system.web.hosting.virtualpathprovider%28v=vs.110%29.aspx) (the default configuration) means your files are routed transparently through your domain (e.g. `https://example.com/media`). Anyone visiting your site won't be able to tell your files are stored on S3.
