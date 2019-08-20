@@ -26,13 +26,16 @@ Add the following keys to `~/Web.config`
   </appSettings>
 </configuration>
 ```
-`Region`, `BucketPrefix`, and `BucketName` are always required.
 
-`DisableVirtualPathProvider` can be left empty as it will default to `false`.
+| Key | Required | Default | Description
+| --- | --- | --- | --- |
+| `Region` | Yes | N/A | The code for the region your S3 bucket is located in, e.g. `eu-west-2` |
+| `BucketPrefix` | Yes | N/A | The prefix for any files/directories being added to S3. Essentially a root directory name. |
+| `BucketName` | Yes | N/A | The name of your S3 bucket. |
+| `BucketHostname` | Sometimes | N/A | The hostname for your bucket (e.g. `test-s3-bucket.s3.eu-west-2.amazonaws.com`). Required when `DisableVirtualPathProvider` is set to `true` |
+| `DisableVirtualPathProvider` | No | `false` | Setting this to `true` will disable the VPP functionality. See below for more info. |
 
-If `DisableVirtualPathProvider` is set to `true`, you must include `BucketHostname`. However, if `DisableVirtualPathProvider` is set to `false` then `BucketHostname` can be left empty, as it doesn't have any effect.
-
-If `DisableVirtualPathProvider` is set to `default` or left empty, then you'll need to add the following to `~/Web.config`
+If `DisableVirtualPathProvider` is set to `false` or left empty, then you'll need to add the following to `~/Web.config`
 ```xml
 <?xml version="1.0"?>
 <configuration>
