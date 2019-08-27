@@ -1,5 +1,5 @@
-﻿using Amazon.S3;
-using System.Configuration;
+﻿using System.Configuration;
+using Amazon.S3;
 using Umbraco.Core;
 using Umbraco.Core.Composing;
 using Umbraco.Core.Exceptions;
@@ -12,7 +12,6 @@ namespace Umbraco.Storage.S3
     public class BucketFileSystemComposer : IComposer
     {
         private const string AppSettingsKey = "BucketFileSystem";
-        private const string ProviderAlias = "media";
         private readonly char[] Delimiters = "/".ToCharArray();
 
         public void Compose(Composition composition)
@@ -44,7 +43,7 @@ namespace Umbraco.Storage.S3
         {
             var bucketName = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketName"];
             var bucketHostName = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketHostname"];
-            var bucketPrefix = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketPrefix"].TrimStart(Delimiters).TrimEnd(Delimiters);
+            var bucketPrefix = ConfigurationManager.AppSettings[$"{AppSettingsKey}:BucketPrefix"].Trim(Delimiters);
             var region = ConfigurationManager.AppSettings[$"{AppSettingsKey}:Region"];
             bool.TryParse(ConfigurationManager.AppSettings[$"{AppSettingsKey}:DisableVirtualPathProvider"], out var disableVirtualPathProvider);
 
@@ -66,7 +65,7 @@ namespace Umbraco.Storage.S3
                 BucketHostName = bucketHostName,
                 BucketPrefix = bucketPrefix,
                 Region = region,
-                CannedACL = new Amazon.S3.S3CannedACL("public-read"),
+                CannedACL = new S3CannedACL("public-read"),
                 ServerSideEncryptionMethod = "",
                 DisableVirtualPathProvider = disableVirtualPathProvider
             };

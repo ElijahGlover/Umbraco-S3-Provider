@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Channels;
-using Amazon;
 using Amazon.S3;
-using Umbraco.Core.IO;
 using Amazon.S3.Model;
+using Umbraco.Core.IO;
 using Umbraco.Core.Logging;
 using Umbraco.Storage.S3.Extensions;
 using Umbraco.Storage.S3.Services;
@@ -91,7 +89,7 @@ namespace Umbraco.Storage.S3
             if (path.StartsWith(Config.BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(Config.BucketPrefix.Length);
 
-            if (isDir && (!path.EndsWith(Delimiter)))
+            if (isDir && !path.EndsWith(Delimiter))
                 path = string.Concat(path, Delimiter);
 
             if (path.StartsWith(Delimiter))
