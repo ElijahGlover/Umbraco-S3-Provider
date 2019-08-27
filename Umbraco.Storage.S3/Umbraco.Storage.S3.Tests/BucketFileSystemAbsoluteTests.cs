@@ -18,7 +18,7 @@ namespace Umbraco.Storage.S3.Tests
     {
         private BucketFileSystem CreateProvider(Mock<IAmazonS3> mock)
         {
-            return CreateProviderWithParams(mock, "test", "http://test.amazonaws.com", "media", string.Empty);
+            return CreateProviderWithParams(mock, "test", "test.amazonaws.com", "media", string.Empty);
         }
 
         private BucketFileSystem CreateProviderWithParams(
@@ -28,7 +28,8 @@ namespace Umbraco.Storage.S3.Tests
             string bucketKeyPrefix,
             string region,
             string cannedACL = null,
-            string serverSideEncryptionMethod = null)
+            string serverSideEncryptionMethod = null,
+            bool disableVirtualPathProvider = true)
         {
             var logHelperMock = new Mock<ILogger>();
             var mimeTypeResolver = new Mock<IMimeTypeResolver>();
@@ -39,9 +40,10 @@ namespace Umbraco.Storage.S3.Tests
                 BucketPrefix = bucketKeyPrefix,
                 Region = region,
                 CannedACL = cannedACL,
-                ServerSideEncryptionMethod = serverSideEncryptionMethod
+                ServerSideEncryptionMethod = serverSideEncryptionMethod,
+                DisableVirtualPathProvider = disableVirtualPathProvider
             };
-            return new BucketFileSystem(config, mimeTypeResolver.Object, null, mock.Object, logHelperMock.Object);
+            return new BucketFileSystem(config, mimeTypeResolver.Object, null, logHelperMock.Object, mock?.Object);
         }
 
         [Test]
@@ -162,7 +164,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(new PutObjectResponse());
 
-            var provider = CreateProviderWithParams(clientMock, "test", null, "media", string.Empty, "private");
+            var provider = CreateProviderWithParams(clientMock, "test", string.Empty, "media", string.Empty, "private");
 
             //Act
             provider.AddFile("/media/1001/media.jpg", stream);
@@ -180,7 +182,7 @@ namespace Umbraco.Storage.S3.Tests
             clientMock.Setup(p => p.PutObject(It.Is<PutObjectRequest>(req => req.Key == "media/1001/media.jpg")))
                       .Returns(new PutObjectResponse());
 
-            var provider = CreateProviderWithParams(clientMock, "test", null, "media", string.Empty, null, "AES256");
+            var provider = CreateProviderWithParams(clientMock, "test", string.Empty, "media", string.Empty, null, "AES256");
 
             //Act
             provider.AddFile("/media/1001/media.jpg", stream);
@@ -513,7 +515,7 @@ namespace Umbraco.Storage.S3.Tests
             //Arrange
             var clientMock = new Mock<IAmazonS3>();
             clientMock.Setup(p => p.GetObjectMetadata(It.Is<GetObjectMetadataRequest>(req => req.Key == "media/1001/media.jpg")))
-                      .Throws(new AmazonS3Exception("media/1001/media.jpg", ErrorType.Sender, "404 Not Found", "", HttpStatusCode.NotFound));
+                      .Throws(new AmazonS3Exception("media/1001/media.jpg", ErrorType.Sender, "404 Not Found", string.Empty, HttpStatusCode.NotFound));
 
             var provider = CreateProvider(clientMock);
 
@@ -548,7 +550,7 @@ namespace Umbraco.Storage.S3.Tests
             var actual = provider.GetUrl("1001/media.jpg");
 
             //Assert
-            Assert.AreEqual("http://test.amazonaws.com/media/1001/media.jpg", actual);
+            Assert.AreEqual("https://test.amazonaws.com/media/1001/media.jpg", actual);
         }
 
         [Test]
@@ -571,7 +573,20 @@ namespace Umbraco.Storage.S3.Tests
             var provider = CreateProvider(null);
 
             //Act
-            var actual = provider.GetRelativePath("http://test.amazonaws.com/media/1001/media.jpg");
+            var actual = provider.GetRelativePath("https://test.amazonaws.com/media/1001/media.jpg");
+
+            //Assert
+            Assert.AreEqual("1001/media.jpg", actual);
+        }
+
+        [Test]
+        public void ResolveRelativePathPrefixNoProtocol()
+        {
+            //Arrange
+            var provider = CreateProvider(null);
+
+            //Act
+            var actual = provider.GetRelativePath("test.amazonaws.com/media/1001/media.jpg");
 
             //Assert
             Assert.AreEqual("1001/media.jpg", actual);

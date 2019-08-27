@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Channels;
-using Amazon;
 using Amazon.S3;
-using Umbraco.Core.IO;
 using Amazon.S3.Model;
+using Umbraco.Core.IO;
 using Umbraco.Core.Logging;
 using Umbraco.Storage.S3.Extensions;
 using Umbraco.Storage.S3.Services;
@@ -15,8 +13,8 @@ namespace Umbraco.Storage.S3
 {
     public class BucketFileSystem : IFileSystem
     {
-        protected readonly ILogger Logger;
         protected readonly BucketFileSystemConfig Config;
+        protected readonly ILogger Logger;
         protected readonly IFileCacheProvider FileCacheProvider;
         protected readonly IMimeTypeResolver MimeTypeResolver;
         protected readonly IAmazonS3 S3Client;
@@ -28,8 +26,8 @@ namespace Umbraco.Storage.S3
             BucketFileSystemConfig config,
             IMimeTypeResolver mimeTypeResolver,
             IFileCacheProvider fileCacheProvider,
-            IAmazonS3 s3Client,
-            ILogger logger)
+            ILogger logger,
+            IAmazonS3 s3Client)
         {
             Config = config;
             FileCacheProvider = fileCacheProvider;
@@ -39,12 +37,16 @@ namespace Umbraco.Storage.S3
         }
 
         public bool CanAddPhysical => false;
+        public string PathPrefix => Config.BucketPrefix;
 
         protected virtual T Execute<T>(Func<IAmazonS3, T> request)
         {
-            try {
+            try
+            {
                 return request(S3Client);
-            } catch (AmazonS3Exception ex) {
+            }
+            catch (AmazonS3Exception ex)
+            {
                 if (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
                     throw new FileNotFoundException(ex.Message, ex);
                 if (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
@@ -77,9 +79,8 @@ namespace Umbraco.Storage.S3
             if (!path.Equals("/") && path.StartsWith(Config.BucketHostName, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(Config.BucketHostName.Length);
 
-            path = path.Replace("\\", Delimiter);
-            if (path == Delimiter)
-                return Config.BucketPrefix;
+            // Equalise delimiters
+            path = path.Replace("/", Delimiter).Replace("\\", Delimiter);
 
             if (path.StartsWith(Delimiter))
                 path = path.Substring(1);
@@ -88,10 +89,13 @@ namespace Umbraco.Storage.S3
             if (path.StartsWith(Config.BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
                 path = path.Substring(Config.BucketPrefix.Length);
 
-            if (isDir && (!path.EndsWith(Delimiter)))
+            if (isDir && !path.EndsWith(Delimiter))
                 path = string.Concat(path, Delimiter);
 
-            return string.Concat(Config.BucketPrefix, path);
+            if (path.StartsWith(Delimiter))
+                path = path.Substring(1);
+
+            return string.Concat(Config.BucketPrefix, "/", path);
         }
 
         protected virtual string RemovePrefix(string key)
@@ -99,9 +103,7 @@ namespace Umbraco.Storage.S3
             if (!string.IsNullOrEmpty(Config.BucketPrefix) && key.StartsWith(Config.BucketPrefix))
                 key = key.Substring(Config.BucketPrefix.Length);
 
-            if (key.EndsWith(Delimiter))
-                key = key.Substring(0, key.Length - Delimiter.Length);
-            return key;
+            return key.TrimStart(Delimiter.ToCharArray()).TrimEnd(Delimiter.ToCharArray());
         }
 
         public virtual IEnumerable<string> GetDirectories(string path)
@@ -240,7 +242,7 @@ namespace Umbraco.Storage.S3
                 if (persistedStream != null)
                     return persistedStream;
             }
-            
+
             var request = new GetObjectRequest
             {
                 BucketName = Config.BucketName,
@@ -300,16 +302,32 @@ namespace Umbraco.Storage.S3
             if (string.IsNullOrEmpty(fullPathOrUrl))
                 return string.Empty;
 
-            if (fullPathOrUrl.StartsWith(Delimiter))
-                fullPathOrUrl = fullPathOrUrl.Substring(1);
+            //Strip protocol if not in hostname
+            if (!Config.BucketHostName.StartsWith("http"))
+            {
+                if (fullPathOrUrl.StartsWith("https://"))
+                {
+                    fullPathOrUrl = fullPathOrUrl.Substring("https://".Length);
+                }
+                if (fullPathOrUrl.StartsWith("http://"))
+                {
+                    fullPathOrUrl = fullPathOrUrl.Substring("http://".Length);
+                }
+            }
 
             //Strip Hostname
             if (fullPathOrUrl.StartsWith(Config.BucketHostName, StringComparison.InvariantCultureIgnoreCase))
+            {
                 fullPathOrUrl = fullPathOrUrl.Substring(Config.BucketHostName.Length);
+                fullPathOrUrl = fullPathOrUrl.TrimStart(Delimiter.ToCharArray());
+            }
 
             //Strip Bucket Prefix
             if (fullPathOrUrl.StartsWith(Config.BucketPrefix, StringComparison.InvariantCultureIgnoreCase))
-                return fullPathOrUrl.Substring(Config.BucketPrefix.Length);
+            {
+                fullPathOrUrl = fullPathOrUrl.Substring(Config.BucketPrefix.Length);
+                fullPathOrUrl = fullPathOrUrl.TrimStart(Delimiter.ToCharArray());
+            }
 
             return fullPathOrUrl;
         }
@@ -321,7 +339,19 @@ namespace Umbraco.Storage.S3
 
         public virtual string GetUrl(string path)
         {
-            return string.Concat(Config.BucketHostName, ResolveBucketPath(path));
+            var hostName = Config.BucketHostName;
+
+            if (Config.DisableVirtualPathProvider)
+            {
+                if (!hostName.StartsWith("http://") && !hostName.StartsWith("https://"))
+                    hostName = "https://" + hostName;
+            }
+            else
+            {
+                hostName = "";
+            }
+
+            return string.Concat(hostName, "/", ResolveBucketPath(path));
         }
 
         public virtual DateTimeOffset GetLastModified(string path)
