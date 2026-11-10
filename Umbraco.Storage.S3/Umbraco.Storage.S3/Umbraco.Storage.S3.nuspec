@@ -6,12 +6,17 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <licenseUrl>https://github.com/ElijahGlover/Umbraco-S3-Provider</licenseUrl>
+    <license type="expression">MIT</license>
     <projectUrl>https://github.com/ElijahGlover/Umbraco-S3-Provider</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes></releaseNotes>
+    <releaseNotes>Final release, Umbraco 7 only. Moves to AWSSDK 3.7, which can read EC2 instance credentials from IMDSv2. An unrecognised cannedACL or serverSideEncryptionMethod now throws instead of falling back to public-read or no encryption. For Umbraco 10 and later see Our.Umbraco.StorageProviders.AWSS3.</releaseNotes>
     <copyright>Copyright 2014</copyright>
     <tags>Umbraco Aws S3 Provider</tags>
+    <dependencies>
+      <dependency id="AWSSDK.Core" version="[3.7.501.1, 4.0.0)" />
+      <dependency id="AWSSDK.S3" version="[3.7.511.8, 4.0.0)" />
+      <dependency id="UmbracoCms.Core" version="[7.2.1, 8.0.0)" />
+    </dependencies>
   </metadata>
 </package>

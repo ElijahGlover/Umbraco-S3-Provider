@@ -17,3 +17,6 @@ updates:
       # Umbraco 8+ is a breaking rewrite of the IFileSystem API this provider implements
       - dependency-name: "UmbracoCms.Core"
         update-types: ["version-update:semver-major"]
+      # AWSSDK 4 needs .NET Framework 4.7.2 and this provider targets 4.5
+      - dependency-name: "AWSSDK.*"
+        update-types: ["version-update:semver-major"]
