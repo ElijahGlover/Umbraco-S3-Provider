@@ -1,4 +1,5 @@
 ﻿using Amazon.S3;
+using System;
 using System.Linq;
 
 namespace Umbraco.Storage.S3.Extensions
@@ -24,9 +25,12 @@ namespace Umbraco.Storage.S3.Extensions
                 return S3CannedACL.PublicRead;
             }
 
-            return ValidAcls.Contains(aclParam)
-                ? S3CannedACL.FindValue(aclParam)
-                : S3CannedACL.PublicRead;
+            if (!ValidAcls.Contains(aclParam))
+            {
+                throw new ArgumentException(string.Format("Unrecognised cannedACL '{0}'. Expected one of: {1}", aclParam, string.Join(", ", ValidAcls)), "aclParam");
+            }
+
+            return S3CannedACL.FindValue(aclParam);
         }
     }
 }

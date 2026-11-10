@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Umbraco.Storage.S3.Extensions;
 using Amazon.S3;
+using System;
 
 namespace Umbraco.Storage.S3.Tests
 {
@@ -24,8 +25,13 @@ namespace Umbraco.Storage.S3.Tests
         [Test]
         public void CannedACLInvalid()
         {
-            var actual = AclExtensions.ParseCannedAcl("invalid-value");
-            Assert.AreEqual(S3CannedACL.PublicRead, actual);
+            Assert.Throws<ArgumentException>(() => AclExtensions.ParseCannedAcl("invalid-value"));
+        }
+
+        [Test]
+        public void CannedACLWrongCase()
+        {
+            Assert.Throws<ArgumentException>(() => AclExtensions.ParseCannedAcl("Private"));
         }
 
         [Test]

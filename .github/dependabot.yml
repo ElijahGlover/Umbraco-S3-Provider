@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/Umbraco.Storage.S3"
+    schedule:
+      interval: "weekly"
+    groups:
+      aws-sdk:
+        patterns:
+          - "AWSSDK.*"
+      test-dependencies:
+        patterns:
+          - "NUnit"
+          - "Moq"
+          - "Castle.Core"
+    ignore:
+      # Umbraco 8+ is a breaking rewrite of the IFileSystem API this provider implements
+      - dependency-name: "UmbracoCms.Core"
+        update-types: ["version-update:semver-major"]
+      # AWSSDK 4 needs .NET Framework 4.7.2 and this provider targets 4.5
+      - dependency-name: "AWSSDK.*"
+        update-types: ["version-update:semver-major"]

@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using Umbraco.Storage.S3.Extensions;
 using Amazon.S3;
+using System;
 
 namespace Umbraco.Storage.S3.Tests
 {
@@ -24,8 +25,13 @@ namespace Umbraco.Storage.S3.Tests
         [Test]
         public void ServerSideEncryptionMethodInvalid()
         {
-            var actual = EncryptionExtensions.ParseServerSideEncryptionMethod("invalid-value");
-            Assert.AreEqual(ServerSideEncryptionMethod.None, actual);
+            Assert.Throws<ArgumentException>(() => EncryptionExtensions.ParseServerSideEncryptionMethod("invalid-value"));
+        }
+
+        [Test]
+        public void ServerSideEncryptionMethodWrongCase()
+        {
+            Assert.Throws<ArgumentException>(() => EncryptionExtensions.ParseServerSideEncryptionMethod("aes256"));
         }
 
         [Test]

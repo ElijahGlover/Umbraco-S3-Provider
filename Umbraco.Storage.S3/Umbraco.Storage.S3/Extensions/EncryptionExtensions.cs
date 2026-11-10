@@ -1,4 +1,5 @@
 ﻿using Amazon.S3;
+using System;
 using System.Linq;
 
 namespace Umbraco.Storage.S3.Extensions
@@ -19,9 +20,12 @@ namespace Umbraco.Storage.S3.Extensions
                 return ServerSideEncryptionMethod.None;
             }
 
-            return ValidServerSideEncryptionMethods.Contains(ssemParam)
-                ? ServerSideEncryptionMethod.FindValue(ssemParam)
-                : ServerSideEncryptionMethod.None;
+            if (!ValidServerSideEncryptionMethods.Contains(ssemParam))
+            {
+                throw new ArgumentException(string.Format("Unrecognised serverSideEncryptionMethod '{0}'. Expected AES256 or aws:kms", ssemParam), "ssemParam");
+            }
+
+            return ServerSideEncryptionMethod.FindValue(ssemParam);
         }
     }
 }
