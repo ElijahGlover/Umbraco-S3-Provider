@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/Umbraco.Storage.S3"
+    schedule:
+      interval: "weekly"
+    groups:
+      aws-sdk:
+        patterns:
+          - "AWSSDK.*"
+      test-dependencies:
+        patterns:
+          - "NUnit"
+          - "Moq"
+          - "Castle.Core"
+    ignore:
+      # Umbraco 8+ is a breaking rewrite of the IFileSystem API this provider implements
+      - dependency-name: "UmbracoCms.Core"
+        update-types: ["version-update:semver-major"]
