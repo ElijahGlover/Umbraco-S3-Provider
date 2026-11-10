@@ -354,5 +354,17 @@ namespace Umbraco.Storage.S3
             var response = Execute(client => client.GetObjectMetadata(request));
             return response.ContentLength;
         }
+
+        public virtual string GetETag(string path)
+        {
+            var request = new GetObjectMetadataRequest
+            {
+                BucketName = Config.BucketName,
+                Key = ResolveBucketPath(path)
+            };
+
+            var response = Execute(client => client.GetObjectMetadata(request));
+            return response.ETag;
+        }
     }
 }
